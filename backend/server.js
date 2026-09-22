@@ -19,7 +19,10 @@ const app =
 app.use(
   cors({
     origin:
-      "http://localhost:5173", // Your Vite frontend URL
+      [
+        "http://localhost:5173",
+        "https://carsfromnaija.vercel.app",
+      ],
     credentials: true,
   }),
 );
