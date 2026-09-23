@@ -1,4 +1,7 @@
-import { useState } from "react";
+import {
+  useState,
+  useEffect,
+} from "react";
 import {
   useNavigate,
   useParams,
@@ -11,10 +14,11 @@ import {
   Plus,
   Trash2,
   CheckCircle2,
+  Edit2,
+  RotateCcw,
 } from "lucide-react";
 import API from "../../api/axios";
 
-const DEFAULT_FX_RATE = 1550;
 const MAX_IMAGES = 10;
 
 const TOP_MAKES =
@@ -307,12 +311,14 @@ export default function AddEditCar() {
         model:
           "",
         year: new Date().getFullYear(),
-        priceUSD:
-          "",
         priceNGN:
           "",
         isNegotiable: true,
         category:
+          "",
+        condition:
+          "Foreign Used",
+        bodyType:
           "",
         specs:
           {
@@ -328,6 +334,51 @@ export default function AddEditCar() {
           },
       },
     );
+
+  const [
+    isTitleCustomized,
+    setIsTitleCustomized,
+  ] =
+    useState(
+      false,
+    );
+
+  // Auto-populate Title strictly as: Year Make Model Condition
+  useEffect(() => {
+    if (
+      !isTitleCustomized &&
+      !isEditMode
+    ) {
+      const titleParts =
+        [
+          formData.year,
+          formData.make,
+          formData.model,
+          formData.condition,
+        ].filter(
+          Boolean,
+        );
+
+      setFormData(
+        (
+          prev,
+        ) => ({
+          ...prev,
+          title:
+            titleParts.join(
+              " ",
+            ),
+        }),
+      );
+    }
+  }, [
+    formData.make,
+    formData.model,
+    formData.year,
+    formData.condition,
+    isTitleCustomized,
+    isEditMode,
+  ]);
 
   const [
     makeOption,
@@ -450,34 +501,6 @@ export default function AddEditCar() {
           }),
         );
       }
-    };
-
-  const handleUSDChange =
-    (
-      e,
-    ) => {
-      const usdVal =
-        e
-          .target
-          .value;
-      const ngnCalc =
-        usdVal
-          ? Number(
-              usdVal,
-            ) *
-            DEFAULT_FX_RATE
-          : "";
-      setFormData(
-        (
-          prev,
-        ) => ({
-          ...prev,
-          priceUSD:
-            usdVal,
-          priceNGN:
-            ngnCalc,
-        }),
-      );
     };
 
   const handleImageChange =
@@ -674,10 +697,6 @@ export default function AddEditCar() {
         formData.year,
       );
       submitData.append(
-        "priceUSD",
-        formData.priceUSD,
-      );
-      submitData.append(
         "priceNGN",
         formData.priceNGN,
       );
@@ -688,6 +707,14 @@ export default function AddEditCar() {
       submitData.append(
         "category",
         formData.category,
+      );
+      submitData.append(
+        "condition",
+        formData.condition,
+      );
+      submitData.append(
+        "bodyType",
+        formData.bodyType,
       );
       submitData.append(
         "specs",
@@ -871,20 +898,69 @@ export default function AddEditCar() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-3">
-              <label className="block text-sm font-semibold text-slate-700 mb-1">
-                Vehicle
-                Title
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-semibold text-slate-700">
+                  Vehicle
+                  Title
+                </label>
+                <div className="flex items-center gap-2">
+                  {isTitleCustomized && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setIsTitleCustomized(
+                          false,
+                        )
+                      }
+                      className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-blue-600 font-medium transition-colors"
+                    >
+                      <RotateCcw
+                        size={
+                          12
+                        }
+                      />
+                      Reset
+                      Auto
+                      Title
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setIsTitleCustomized(
+                        true,
+                      )
+                    }
+                    className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded transition-colors ${
+                      isTitleCustomized
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                    }`}
+                  >
+                    <Edit2
+                      size={
+                        12
+                      }
+                    />
+                    {isTitleCustomized
+                      ? "Customized Title"
+                      : "Edit Title"}
+                  </button>
+                </div>
+              </div>
               <input
                 type="text"
-                placeholder="e.g. 2026 Tesla Model 3 Long Range"
+                placeholder="e.g. 2019 Toyota Corolla Registered"
                 required
                 value={
                   formData.title
                 }
                 onChange={(
                   e,
-                ) =>
+                ) => {
+                  setIsTitleCustomized(
+                    true,
+                  );
                   setFormData(
                     {
                       ...formData,
@@ -893,8 +969,8 @@ export default function AddEditCar() {
                           .target
                           .value,
                     },
-                  )
-                }
+                  );
+                }}
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
               />
             </div>
@@ -1179,51 +1255,15 @@ export default function AddEditCar() {
                 </option>
               </select>
             </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
-            Pricing
-            &
-            FX
-            Valuation
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Condition Dropdown */}
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1">
-                Base
-                Buy
-                Price
-                ($
-                USD)
+                Condition
               </label>
-              <input
-                type="number"
-                placeholder="e.g. 25000"
+              <select
                 required
                 value={
-                  formData.priceUSD
-                }
-                onChange={
-                  handleUSDChange
-                }
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">
-                Calculated
-                Price
-                (₦
-                NGN)
-              </label>
-              <input
-                type="number"
-                placeholder="Auto-calculated from USD"
-                required
-                value={
-                  formData.priceNGN
+                  formData.condition
                 }
                 onChange={(
                   e,
@@ -1231,16 +1271,123 @@ export default function AddEditCar() {
                   setFormData(
                     {
                       ...formData,
-                      priceNGN:
+                      condition:
                         e
                           .target
                           .value,
                     },
                   )
                 }
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 font-bold text-blue-600"
-              />
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+              >
+                <option value="Foreign Used">
+                  Foreign
+                  Used
+                </option>
+                <option value="Registered">
+                  Registered
+                </option>
+                <option value="Brand New">
+                  Brand
+                  New
+                </option>
+              </select>
             </div>
+
+            {/* Body Type Dropdown */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">
+                Body
+                Type
+              </label>
+              <select
+                value={
+                  formData.bodyType
+                }
+                onChange={(
+                  e,
+                ) =>
+                  setFormData(
+                    {
+                      ...formData,
+                      bodyType:
+                        e
+                          .target
+                          .value,
+                    },
+                  )
+                }
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+              >
+                <option value="">
+                  Select
+                  Body
+                  Type...
+                </option>
+                <option value="Sedan">
+                  Sedan
+                </option>
+                <option value="SUV">
+                  SUV
+                </option>
+                <option value="4 door Coupe">
+                  4
+                  door
+                  Coupe
+                </option>
+                <option value="2 Door coupe">
+                  2
+                  Door
+                  coupe
+                </option>
+                <option value="Crossover">
+                  Crossover
+                </option>
+                <option value="Truck">
+                  Truck
+                </option>
+                <option value="Pick Up">
+                  Pick
+                  Up
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
+            Pricing
+          </h2>
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">
+              Vehicle
+              Price
+              (₦
+              NGN)
+            </label>
+            <input
+              type="number"
+              placeholder="e.g. 25000000"
+              required
+              value={
+                formData.priceNGN
+              }
+              onChange={(
+                e,
+              ) =>
+                setFormData(
+                  {
+                    ...formData,
+                    priceNGN:
+                      e
+                        .target
+                        .value,
+                  },
+                )
+              }
+              className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 font-bold text-blue-600"
+            />
           </div>
 
           {/* Vehicle Specifications Section */}

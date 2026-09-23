@@ -39,11 +39,6 @@ const carSchema =
           default:
             "Regular",
         },
-      priceUSD:
-        {
-          type: Number,
-          required: true,
-        },
       priceNGN:
         {
           type: Number,
@@ -125,6 +120,33 @@ const carSchema =
             {
               type: String,
             },
+        },
+      condition:
+        {
+          type: String,
+          enum: [
+            "Foreign Used",
+            "Registered",
+            "Brand New",
+          ],
+          default:
+            "Foreign Used",
+        },
+      bodyType:
+        {
+          type: String,
+          enum: [
+            "Sedan",
+            "SUV",
+            "4 door Coupe",
+            "2 Door coupe",
+            "Crossover",
+            "Truck",
+            "Pick Up",
+            "",
+          ],
+          default:
+            "",
         },
     },
     {

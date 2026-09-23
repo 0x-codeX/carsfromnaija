@@ -154,9 +154,15 @@ export default function AdminLayout() {
           )}
         </nav>
 
-        <div className="absolute bottom-0 w-full p-4 border-t border-slate-800">
+        {/* Updated: Changed to relative for mobile, absolute for desktop (md) */}
+        <div className="relative md:absolute md:bottom-0 w-full p-4 border-t border-slate-800 mt-2 md:mt-0">
           <Link
             to="/"
+            onClick={() =>
+              setIsMobileMenuOpen(
+                false,
+              )
+            }
             className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white transition-colors"
           >
             <LogOut

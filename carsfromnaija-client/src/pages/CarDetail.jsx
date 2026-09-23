@@ -250,8 +250,60 @@ export default function CarDetail() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        {/* Left Column: Media & Features */}
+        {/* Left Column: Media Only */}
         <div className="space-y-6">
+          {/* Mobile Only: Vehicle Title & Status at top of Image */}
+          <div className="block lg:hidden mb-2">
+            <div className="flex gap-2 mb-2 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              <span className="flex-shrink-0 whitespace-nowrap bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                {car.status ||
+                  "Available"}
+              </span>
+
+              {car.category && (
+                <span className="flex-shrink-0 whitespace-nowrap bg-slate-100 text-slate-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                  {
+                    car.category
+                  }
+                </span>
+              )}
+
+              {car.condition && (
+                <span className="flex-shrink-0 whitespace-nowrap bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                  {
+                    car.condition
+                  }
+                </span>
+              )}
+              {car.bodyType && (
+                <span className="flex-shrink-0 whitespace-nowrap bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                  {
+                    car.bodyType
+                  }
+                </span>
+              )}
+              {car.isNegotiable && (
+                <span className="flex-shrink-0 whitespace-nowrap bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                  Negotiable
+                </span>
+              )}
+            </div>
+
+            <h1 className="text-2xl font-extrabold text-slate-900 mb-1">
+              {
+                car.title
+              }
+            </h1>
+            <p className="text-2xl font-black text-blue-600">
+              ₦
+              {car.priceNGN
+                ? Number(
+                    car.priceNGN,
+                  ).toLocaleString()
+                : "Contact for price"}
+            </p>
+          </div>
+
           {/* Main Display Image */}
           <div className="bg-slate-100 rounded-2xl overflow-hidden h-80 md:h-96 border border-slate-200">
             <img
@@ -336,15 +388,188 @@ export default function CarDetail() {
                 />
               </div>
             )}
+        </div>
 
-          {/* Features List */}
+        {/* Right Column: ALL Details, Specs, Features & Actions */}
+        <div className="flex flex-col space-y-6">
+          {/* Desktop Only Header */}
+          <div className="hidden lg:block">
+            <div className="flex flex-wrap gap-2 mb-3">
+              <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                {car.status ||
+                  "Available"}
+              </span>
+              {car.category && (
+                <span className="bg-slate-100 text-slate-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                  {
+                    car.category
+                  }
+                </span>
+              )}
+              {car.condition && (
+                <span className="bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                  {
+                    car.condition
+                  }
+                </span>
+              )}
+              {car.bodyType && (
+                <span className="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                  {
+                    car.bodyType
+                  }
+                </span>
+              )}
+              {car.isNegotiable && (
+                <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
+                  Negotiable
+                </span>
+              )}
+            </div>
+
+            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2">
+              {
+                car.title
+              }
+            </h1>
+
+            <p className="text-3xl font-black text-blue-600">
+              ₦
+              {car.priceNGN
+                ? Number(
+                    car.priceNGN,
+                  ).toLocaleString()
+                : "Contact for price"}
+            </p>
+          </div>
+
+          {/* Complete Specifications Grid */}
+          <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+            <h3 className="text-lg font-bold text-slate-900 mb-4 pb-2 border-b border-slate-200">
+              Vehicle
+              Details
+              &
+              Specifications
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              <div>
+                <p className="text-xs text-slate-500 uppercase font-semibold mb-1">
+                  Make
+                </p>
+                <p className="font-bold text-slate-900">
+                  {car.make ||
+                    "N/A"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 uppercase font-semibold mb-1">
+                  Model
+                </p>
+                <p className="font-bold text-slate-900">
+                  {car.model ||
+                    "N/A"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 uppercase font-semibold mb-1">
+                  Year
+                </p>
+                <p className="font-bold text-slate-900">
+                  {car.year ||
+                    "N/A"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 uppercase font-semibold mb-1">
+                  Condition
+                </p>
+                <p className="font-bold text-slate-900">
+                  {car.condition ||
+                    "N/A"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 uppercase font-semibold mb-1">
+                  Body
+                  Type
+                </p>
+                <p className="font-bold text-slate-900">
+                  {car.bodyType ||
+                    "N/A"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 uppercase font-semibold mb-1">
+                  Mileage
+                </p>
+                <p className="font-bold text-slate-900">
+                  {car
+                    .specs
+                    ?.mileage
+                    ? `${Number(car.specs.mileage).toLocaleString()} mi`
+                    : "N/A"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 uppercase font-semibold mb-1">
+                  Transmission
+                </p>
+                <p className="font-bold text-slate-900">
+                  {car
+                    .specs
+                    ?.transmission ||
+                    "N/A"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 uppercase font-semibold mb-1">
+                  Engine
+                </p>
+                <p className="font-bold text-slate-900">
+                  {car
+                    .specs
+                    ?.engineType ||
+                    "N/A"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 uppercase font-semibold mb-1">
+                  Color
+                </p>
+                <p className="font-bold text-slate-900">
+                  {car
+                    .specs
+                    ?.color ||
+                    "N/A"}
+                </p>
+              </div>
+              {car
+                .specs
+                ?.vin && (
+                <div className="col-span-2 sm:col-span-3">
+                  <p className="text-xs text-slate-500 uppercase font-semibold mb-1">
+                    VIN
+                  </p>
+                  <p className="font-bold text-slate-900 font-mono text-sm tracking-wider">
+                    {
+                      car
+                        .specs
+                        .vin
+                    }
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Key Features Section (Moved to Right Side) */}
           {car.features &&
             car
               .features
               .length >
               0 && (
               <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                <h3 className="text-xl font-bold text-slate-900 mb-4">
+                <h3 className="text-lg font-bold text-slate-900 mb-4 pb-2 border-b border-slate-100">
                   Key
                   Features
                 </h3>
@@ -375,104 +600,13 @@ export default function CarDetail() {
                 </ul>
               </div>
             )}
-        </div>
 
-        {/* Right Column: Details & Actions */}
-        <div className="flex flex-col">
-          <div className="mb-6">
-            <div className="flex flex-wrap gap-2 mb-3">
-              <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
-                {car.status ||
-                  "Available"}
-              </span>
-              {car.category && (
-                <span className="bg-slate-100 text-slate-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
-                  {
-                    car.category
-                  }
-                </span>
-              )}
-              {car.isNegotiable && (
-                <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
-                  Negotiable
-                </span>
-              )}
-            </div>
-
-            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2">
-              {
-                car.title
-              }
-            </h1>
-
-            <p className="text-3xl font-black text-blue-600">
-              ₦
-              {car.priceNGN
-                ? Number(
-                    car.priceNGN,
-                  ).toLocaleString()
-                : "Contact for price"}
-            </p>
-          </div>
-
-          {/* Technical Specs Grid */}
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-              <p className="text-xs text-slate-500 uppercase font-semibold mb-1">
-                Mileage
-              </p>
-              <p className="font-bold text-slate-900">
-                {car
-                  .specs
-                  ?.mileage
-                  ? `${Number(car.specs.mileage).toLocaleString()} mi`
-                  : "N/A"}
-              </p>
-            </div>
-
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-              <p className="text-xs text-slate-500 uppercase font-semibold mb-1">
-                Transmission
-              </p>
-              <p className="font-bold text-slate-900">
-                {car
-                  .specs
-                  ?.transmission ||
-                  "N/A"}
-              </p>
-            </div>
-
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-              <p className="text-xs text-slate-500 uppercase font-semibold mb-1">
-                Engine
-              </p>
-              <p className="font-bold text-slate-900">
-                {car
-                  .specs
-                  ?.engineType ||
-                  "N/A"}
-              </p>
-            </div>
-
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-              <p className="text-xs text-slate-500 uppercase font-semibold mb-1">
-                Color
-              </p>
-              <p className="font-bold text-slate-900">
-                {car
-                  .specs
-                  ?.color ||
-                  "N/A"}
-              </p>
-            </div>
-          </div>
-
-          {/* Cost Calculator with Live Settings */}
-          <div className="mb-8">
+          {/* Cost Calculator */}
+          <div>
             <CostCalculator
-              carPriceUSD={
+              carPriceNGN={
                 Number(
-                  car.priceUSD,
+                  car.priceNGN,
                 ) ||
                 0
               }
@@ -483,7 +617,7 @@ export default function CarDetail() {
           </div>
 
           {/* Contact Actions */}
-          <div className="mt-auto flex flex-col sm:flex-row gap-4">
+          <div className="mt-auto flex flex-col sm:flex-row gap-4 pt-4">
             <button
               onClick={
                 handleWhatsApp
@@ -500,7 +634,6 @@ export default function CarDetail() {
               WhatsApp
             </button>
 
-            {/* Request via Email Button */}
             <a
               href={`mailto:${dealerEmail}?subject=Inquiry: ${encodeURIComponent(
                 car.title ||
