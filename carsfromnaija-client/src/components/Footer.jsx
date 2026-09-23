@@ -8,7 +8,7 @@ import {
 export default function Footer() {
   return (
     <footer className="bg-slate-900 text-white pt-8 pb-4 mt-auto border-t border-slate-800">
-      <div className="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
+      <div className="w-full px-6 md:px-12 max-w-[1920px] mx-auto flex flex-col md:flex-row justify-between items-center">
         {/* Brand Copyright */}
         <div className="mb-4 md:mb-0 text-center md:text-left text-gray-400">
           <p className="font-bold text-lg text-white mb-1">

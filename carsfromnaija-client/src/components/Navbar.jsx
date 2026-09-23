@@ -53,8 +53,8 @@ const Navbar =
     }, []);
 
     return (
-      <nav className="bg-slate-900 text-white p-4 shadow-md sticky top-0 z-50">
-        <div className="container mx-auto flex justify-between items-center relative">
+      <nav className="bg-slate-900 text-white py-4 shadow-md sticky top-0 z-50">
+        <div className="w-full px-6 md:px-12 max-w-[1920px] mx-auto flex justify-between items-center relative">
           {/* Left: Logo */}
           <Link
             to="/"
@@ -82,7 +82,7 @@ const Navbar =
 
             {/* Right: Dynamic WhatsApp Contact Button */}
             <a
-              href={`https://wa.me/${whatsappNumber}`}
+              href={`https://wa.me/${whatsappNumber}?text=Hi%20CarsFromNaija%2C%20I%20want%20to%20inquire%20about%20a%20car.`}
               target="_blank"
               rel="noopener noreferrer"
               className="bg-green-600 hover:bg-green-500 text-white px-4 py-2 sm:px-5 sm:py-2 rounded-lg font-bold tracking-wide transition-all transform hover:scale-105 shadow-sm text-sm sm:text-base whitespace-nowrap"
