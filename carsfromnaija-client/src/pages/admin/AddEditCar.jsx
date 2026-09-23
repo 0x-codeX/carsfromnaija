@@ -607,6 +607,50 @@ export default function AddEditCar() {
     navigate,
   ]);
 
+  const handleAddFeature =
+    (
+      e,
+    ) => {
+      // Prevent form submission if triggered via a button click inside the form
+      e.preventDefault();
+
+      const cleanFeature =
+        featureInput.trim();
+      // Stress-test: Prevent empty inputs and duplicates
+      if (
+        cleanFeature &&
+        !features.includes(
+          cleanFeature,
+        )
+      ) {
+        setFeatures(
+          [
+            ...features,
+            cleanFeature,
+          ],
+        );
+        setFeatureInput(
+          "",
+        );
+      }
+    };
+
+  const removeFeature =
+    (
+      indexToRemove,
+    ) => {
+      setFeatures(
+        features.filter(
+          (
+            _,
+            index,
+          ) =>
+            index !==
+            indexToRemove,
+        ),
+      );
+    };
+
   const handleMakeSelectChange =
     (
       e,
@@ -1773,6 +1817,104 @@ export default function AddEditCar() {
                 />
               </div>
             </div>
+          </div>
+
+          {/* Section 4.5: Key Features */}
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
+              Key
+              Features
+            </h2>
+
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="e.g. Leather Seats, Panoramic Sunroof, Apple CarPlay"
+                value={
+                  featureInput
+                }
+                onChange={(
+                  e,
+                ) =>
+                  setFeatureInput(
+                    e
+                      .target
+                      .value,
+                  )
+                }
+                onKeyDown={(
+                  e,
+                ) => {
+                  // Catch the Enter key so it adds the feature instead of submitting the form
+                  if (
+                    e.key ===
+                    "Enter"
+                  ) {
+                    e.preventDefault();
+                    handleAddFeature(
+                      e,
+                    );
+                  }
+                }}
+                className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+              />
+              <button
+                type="button"
+                onClick={
+                  handleAddFeature
+                }
+                className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-lg font-bold text-sm transition-colors flex items-center gap-2"
+              >
+                <Plus
+                  size={
+                    16
+                  }
+                />{" "}
+                Add
+              </button>
+            </div>
+
+            {/* Display added features as removable tags */}
+            {features.length >
+              0 && (
+              <div className="flex flex-wrap gap-2 pt-2">
+                {features.map(
+                  (
+                    feature,
+                    idx,
+                  ) => (
+                    <div
+                      key={
+                        idx
+                      }
+                      className="flex items-center gap-2 bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full text-sm font-medium border border-blue-100"
+                    >
+                      <span>
+                        {
+                          feature
+                        }
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          removeFeature(
+                            idx,
+                          )
+                        }
+                        className="text-blue-400 hover:text-red-500 transition-colors bg-white rounded-full p-0.5 shadow-sm"
+                        aria-label="Remove feature"
+                      >
+                        <X
+                          size={
+                            14
+                          }
+                        />
+                      </button>
+                    </div>
+                  ),
+                )}
+              </div>
+            )}
           </div>
 
           {/* Section 5: Image Upload */}

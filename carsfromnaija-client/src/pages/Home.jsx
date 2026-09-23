@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import {
   useState,
   useEffect,
@@ -130,6 +131,23 @@ export default function Home() {
 
   return (
     <div className="bg-slate-50 min-h-screen">
+      <Helmet>
+        <title>
+          Buy
+          &
+          Ship
+          Cars
+          to
+          Lagos,
+          Nigeria
+          |
+          YourDealershipName
+        </title>
+        <meta
+          name="description"
+          content="Your trusted car brokerage and consultancy in Nigeria. We source, ship, clear, and deliver verified vehicles directly to you in Lagos."
+        />
+      </Helmet>
       {/* Hero Section - Removed 'overflow-hidden' from the main section so the dropdown isn't clipped */}
       <section className="relative min-h-[600px] lg:h-[80vh] w-full flex items-center justify-center pt-20 lg:pt-0">
         {/* Carousel Background Images wrapped in its own isolated overflow-hidden container */}

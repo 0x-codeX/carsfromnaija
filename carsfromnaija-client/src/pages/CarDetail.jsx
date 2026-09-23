@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import {
   useState,
   useEffect,
@@ -5,6 +6,7 @@ import {
 import {
   useParams,
   Link,
+  useLocation,
 } from "react-router-dom";
 import {
   CheckCircle2,
@@ -17,6 +19,23 @@ import CostCalculator from "../components/CostCalculator";
 import API from "../api/axios";
 
 export default function CarDetail() {
+  const location =
+    useLocation();
+  // Check if the router state contains the admin flag
+  const isAdminView =
+    location
+      .state
+      ?.fromAdmin;
+
+  // Dynamically set the route and text
+  const backRoute =
+    isAdminView
+      ? "/admin/inventory"
+      : "/inventory";
+  const backText =
+    isAdminView
+      ? "Back to Inventory Management"
+      : "Return to Inventory";
   const {
     id,
   } =
@@ -229,22 +248,109 @@ export default function CarDetail() {
 
   const emailBody = `Hello,\n\nI am interested in this vehicle listing:\n\nTitle: ${car.title || "Vehicle"}\nPrice: ₦${car.priceNGN ? Number(car.priceNGN).toLocaleString() : "Contact for price"}\n\nListing Link: ${window.location.href}\nImage Reference: ${mainImageUrl}\n\nIs it still available?`;
 
+  const carSchema =
+    {
+      "@context":
+        "https://schema.org/",
+      "@type":
+        "Vehicle",
+      name: car.title,
+      image:
+        mainImageUrl,
+      description: `For sale in Lagos, Nigeria: ${car.year || ""} ${car.make || ""} ${car.model || ""}.`,
+      brand:
+        {
+          "@type":
+            "Brand",
+          name:
+            car.make ||
+            "Unknown",
+        },
+      offers:
+        {
+          "@type":
+            "Offer",
+          url: window
+            .location
+            .href,
+          priceCurrency:
+            "NGN",
+          price:
+            car.priceNGN ||
+            0,
+          itemCondition:
+            car.condition ===
+            "Brand New"
+              ? "https://schema.org/NewCondition"
+              : "https://schema.org/UsedCondition",
+          availability:
+            "https://schema.org/InStock",
+          eligibleRegion:
+            {
+              "@type":
+                "Country",
+              name: "Nigeria",
+            },
+        },
+    };
+
   return (
     <div className="container mx-auto px-4 py-12 max-w-6xl">
+      {/* SEO INJECTION START */}
+      <Helmet>
+        <title>
+          {
+            car.title
+          }{" "}
+          for
+          Sale
+          in
+          Lagos,
+          Nigeria
+          |
+          YourDealershipName
+        </title>
+        <meta
+          name="description"
+          content={`Buy this ${car.condition || "used"} ${car.year || ""} ${car.make || ""} ${car.model || ""} in Lagos. Price: ₦${car.priceNGN ? Number(car.priceNGN).toLocaleString() : "Contact for price"}. Contact us on WhatsApp today.`}
+        />
+        <meta
+          property="og:title"
+          content={`${car.title} for Sale in Lagos`}
+        />
+        <meta
+          property="og:description"
+          content={`Available now in Lagos for ₦${car.priceNGN ? Number(car.priceNGN).toLocaleString() : "Contact for price"}.`}
+        />
+        <meta
+          property="og:image"
+          content={
+            mainImageUrl
+          }
+        />
+      </Helmet>
+      <script type="application/ld+json">
+        {JSON.stringify(
+          carSchema,
+        )}
+      </script>
+      {/* SEO INJECTION END */}
       {/* Back Button */}
       <div className="mb-6">
         <Link
-          to="/inventory"
-          className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 font-bold text-sm transition-colors"
+          to={
+            backRoute
+          }
+          className="inline-flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-blue-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
         >
           <ArrowLeft
             size={
               16
             }
           />
-          Back
-          to
-          Inventory
+          {
+            backText
+          }
         </Link>
       </div>
 
@@ -291,7 +397,12 @@ export default function CarDetail() {
             <h1 className="text-2xl font-extrabold text-slate-900 mb-1">
               {
                 car.title
-              }
+              }{" "}
+              <span className="text-lg text-slate-600 block">
+                in
+                Lagos,
+                Nigeria
+              </span>
             </h1>
             <p className="text-2xl font-black text-blue-600">
               ₦
@@ -431,7 +542,12 @@ export default function CarDetail() {
             <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2">
               {
                 car.title
-              }
+              }{" "}
+              <span className="text-2xl text-slate-500 font-bold tracking-tight">
+                in
+                Lagos,
+                Nigeria
+              </span>
             </h1>
 
             <p className="text-3xl font-black text-blue-600">
