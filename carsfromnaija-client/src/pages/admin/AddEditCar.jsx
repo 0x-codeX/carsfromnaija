@@ -16,6 +16,272 @@ import API from "../../api/axios";
 
 const DEFAULT_FX_RATE = 1550;
 
+const TOP_MAKES =
+  [
+    "Toyota",
+    "Honda",
+    "Nissan",
+    "Hyundai",
+    "Kia",
+    "BMW",
+    "Mercedes-Benz",
+  ];
+
+const ALPHABETICAL_MAKES =
+  [
+    "Acura",
+    "Audi",
+    "BYD",
+    "Changan",
+    "Chery",
+    "Chevrolet",
+    "Ford",
+    "GAC",
+    "Geely",
+    "Jeep",
+    "Land Rover",
+    "Lexus",
+    "Mazda",
+    "Mitsubishi",
+    "Porsche",
+    "Tesla",
+    "Volkswagen",
+  ];
+
+const ALL_PRESET_MAKES =
+  [
+    ...TOP_MAKES,
+    ...ALPHABETICAL_MAKES,
+  ];
+
+const CAR_MODELS_MAP =
+  {
+    Toyota:
+      [
+        "Camry",
+        "Corolla",
+        "RAV4",
+        "Highlander",
+        "Avalon",
+        "Matrix",
+        "Prado",
+        "Land Cruiser",
+        "Hilux",
+        "Sienna",
+        "Venza",
+        "Yaris",
+        "Tacoma",
+        "Tundra",
+        "4Runner",
+        "FJ Cruiser",
+      ],
+    Honda:
+      [
+        "Accord",
+        "Civic",
+        "CR-V",
+        "Pilot",
+        "Crosstour",
+        "Odyssey",
+        "Fit",
+        "HR-V",
+      ],
+    Nissan:
+      [
+        "Altima",
+        "Pathfinder",
+        "Maxima",
+        "Sentra",
+        "Rogue",
+        "Murano",
+        "Patrol",
+      ],
+    Hyundai:
+      [
+        "Elantra",
+        "Sonata",
+        "Tucson",
+        "Santa Fe",
+        "Accent",
+        "Genesis",
+      ],
+    Kia: [
+      "Pegas",
+      "Sorento",
+      "Sportage",
+      "Rio",
+      "Optima",
+      "Cerato",
+      "Telluride",
+      "Picanto",
+    ],
+    BMW: [
+      "3 Series",
+      "5 Series",
+      "X3",
+      "X5",
+      "X6",
+      "7 Series",
+      "4 Series",
+    ],
+    "Mercedes-Benz":
+      [
+        "C-Class",
+        "C 300",
+        "E 350",
+        "GLE-Class",
+        "GLE-Class Coupe",
+        "GLE 350",
+        "GLE 450",
+        "GLK 350",
+        "GLC 300",
+        "GLC 300 Coupe",
+        "ML 350",
+        "G 63 AMG",
+        "G 63 AMG Coupe",
+        "S-Class",
+        "S 550",
+        "CLA 250",
+        "A 220",
+      ],
+    Acura:
+      [
+        "MDX",
+        "RDX",
+        "TLX",
+        "TSX",
+      ],
+    Audi: [
+      "A4",
+      "A6",
+      "Q5",
+      "Q7",
+      "Q3",
+    ],
+    BYD: [
+      "Atto 3",
+      "Dolphin",
+      "Seal",
+    ],
+    Changan:
+      [
+        "CS35 Plus",
+      ],
+    Chery:
+      [
+        "Arrizo 5",
+        "Tiggo 7 Pro",
+        "Tiggo 8 Pro",
+      ],
+    Chevrolet:
+      [
+        "Cruze",
+        "Equinox",
+        "Malibu",
+        "Tahoe",
+        "Camaro",
+      ],
+    Ford: [
+      "Explorer",
+      "Escape",
+      "F-150",
+      "Edge",
+      "Mustang",
+      "Focus",
+      "Fusion",
+    ],
+    GAC: [
+      "GS4",
+    ],
+    Geely:
+      [
+        "Coolray",
+      ],
+    Jeep: [
+      "Grand Cherokee",
+      "Wrangler",
+      "Cherokee",
+      "Renegade",
+    ],
+    "Land Rover":
+      [
+        "Range Rover Sport",
+        "Range Rover Vogue",
+        "Range Rover Evoque",
+        "Discovery",
+        "Defender",
+      ],
+    Lexus:
+      [
+        "ES",
+        "ES 350",
+        "ES 300",
+        "RX",
+        "RX 350",
+        "RX 330",
+        "RX 300",
+        "GX 460",
+        "GX 470",
+        "LX 570",
+        "LX 600",
+        "IS 250",
+        "IS 350",
+        "NX 200t",
+        "NX 300",
+      ],
+    Mazda:
+      [
+        "CX-5",
+        "CX-9",
+        "Mazda 3",
+        "Mazda 6",
+      ],
+    Mitsubishi:
+      [
+        "Pajero",
+        "Outlander",
+        "Lancer",
+        "ASX",
+      ],
+    Porsche:
+      [
+        "Cayenne",
+        "Macan",
+        "Panamera",
+        "911",
+      ],
+    Tesla:
+      [
+        "Model 3",
+        "Model S",
+        "Model X",
+        "Model Y",
+      ],
+    Volkswagen:
+      [
+        "Golf",
+        "Passat",
+        "Jetta",
+        "Tiguan",
+        "Touareg",
+      ],
+  };
+
+const YEARS =
+  Array.from(
+    {
+      length:
+        new Date().getFullYear() -
+        1939,
+    },
+    (
+      _,
+      i,
+    ) =>
+      new Date().getFullYear() -
+      i,
+  );
+
 export default function AddEditCar() {
   const {
     id,
@@ -46,7 +312,7 @@ export default function AddEditCar() {
           "",
         isNegotiable: true,
         category:
-          "", // NEW: Add category to state
+          "",
         specs:
           {
             mileage:
@@ -59,6 +325,29 @@ export default function AddEditCar() {
             color:
               "",
           },
+      },
+    );
+
+  const [
+    makeOption,
+    setMakeOption,
+  ] =
+    useState(
+      () => {
+        if (
+          formData.make &&
+          ALL_PRESET_MAKES.includes(
+            formData.make,
+          )
+        ) {
+          return formData.make;
+        }
+        if (
+          formData.make
+        ) {
+          return "Other";
+        }
+        return "";
       },
     );
 
@@ -122,7 +411,46 @@ export default function AddEditCar() {
       0,
     );
 
-  // FX Rate calculation handler
+  const handleMakeSelectChange =
+    (
+      e,
+    ) => {
+      const selectedVal =
+        e
+          .target
+          .value;
+      setMakeOption(
+        selectedVal,
+      );
+
+      if (
+        selectedVal ===
+        "Other"
+      ) {
+        setFormData(
+          (
+            prev,
+          ) => ({
+            ...prev,
+            make: "",
+            model:
+              "",
+          }),
+        );
+      } else {
+        setFormData(
+          (
+            prev,
+          ) => ({
+            ...prev,
+            make: selectedVal,
+            model:
+              "",
+          }),
+        );
+      }
+    };
+
   const handleUSDChange =
     (
       e,
@@ -151,195 +479,6 @@ export default function AddEditCar() {
       );
     };
 
-  const handleImageChange =
-    (
-      e,
-    ) => {
-      const files =
-        Array.from(
-          e
-            .target
-            .files,
-        );
-      if (
-        files.length ===
-        0
-      )
-        return;
-
-      // 1. Hard constraint: 10 Images Max Total
-      const totalAfterUpload =
-        imageFiles.length +
-        files.length;
-      if (
-        totalAfterUpload >
-        10
-      ) {
-        alert(
-          `Limit exceeded! You can only upload a maximum of 10 images. You currently have ${imageFiles.length} and tried to add ${files.length}.`,
-        );
-        return;
-      }
-
-      // 2. Hard constraint: 5MB per image limit to prevent Multer size crashes
-      const oversizedFiles =
-        files.filter(
-          (
-            file,
-          ) =>
-            file.size >
-            5 *
-              1024 *
-              1024,
-        );
-      if (
-        oversizedFiles.length >
-        0
-      ) {
-        alert(
-          "One or more images exceed the 5MB size limit.",
-        );
-        return;
-      }
-
-      setImageFiles(
-        (
-          prev,
-        ) => [
-          ...prev,
-          ...files,
-        ],
-      );
-
-      const newPreviews =
-        files.map(
-          (
-            file,
-          ) =>
-            URL.createObjectURL(
-              file,
-            ),
-        );
-      setImagePreviews(
-        (
-          prev,
-        ) => [
-          ...prev,
-          ...newPreviews,
-        ],
-      );
-    };
-
-  const removeImage =
-    (
-      index,
-    ) => {
-      setImageFiles(
-        (
-          prev,
-        ) =>
-          prev.filter(
-            (
-              _,
-              i,
-            ) =>
-              i !==
-              index,
-          ),
-      );
-      setImagePreviews(
-        (
-          prev,
-        ) =>
-          prev.filter(
-            (
-              _,
-              i,
-            ) =>
-              i !==
-              index,
-          ),
-      );
-    };
-
-  // Handle Key Features Array
-  const addFeature =
-    () => {
-      if (
-        featureInput.trim() &&
-        !features.includes(
-          featureInput.trim(),
-        )
-      ) {
-        setFeatures(
-          (
-            prev,
-          ) => [
-            ...prev,
-            featureInput.trim(),
-          ],
-        );
-        setFeatureInput(
-          "",
-        );
-      }
-    };
-
-  const removeFeature =
-    (
-      index,
-    ) => {
-      setFeatures(
-        (
-          prev,
-        ) =>
-          prev.filter(
-            (
-              _,
-              i,
-            ) =>
-              i !==
-              index,
-          ),
-      );
-    };
-
-  const handleVideoChange =
-    (
-      e,
-    ) => {
-      const file =
-        e
-          .target
-          .files[0];
-      if (
-        !file
-      )
-        return;
-
-      // Hard constraint: Reject files over 15MB to protect server RAM and bandwidth
-      if (
-        file.size >
-        15 *
-          1024 *
-          1024
-      ) {
-        alert(
-          "Video is too large. Please compress it to under 15MB.",
-        );
-        return;
-      }
-
-      setVideoFile(
-        file,
-      );
-      setVideoPreview(
-        URL.createObjectURL(
-          file,
-        ),
-      );
-    };
-
   const handleSubmit =
     async (
       e,
@@ -349,11 +488,8 @@ export default function AddEditCar() {
         true,
       );
 
-      // FormData instantiated correctly inside the function scope
       const submitData =
         new FormData();
-
-      // 1. Append Text Data
       submitData.append(
         "title",
         formData.title,
@@ -386,8 +522,6 @@ export default function AddEditCar() {
         "category",
         formData.category,
       );
-
-      // 2. Append Stringified Objects/Arrays
       submitData.append(
         "specs",
         JSON.stringify(
@@ -400,14 +534,11 @@ export default function AddEditCar() {
           features,
         ),
       );
-
-      // 3. Append the Main Image Index
       submitData.append(
         "mainImageIndex",
         mainImageIndex,
       );
 
-      // 4. Append actual selected binary image files
       imageFiles.forEach(
         (
           file,
@@ -419,7 +550,6 @@ export default function AddEditCar() {
         },
       );
 
-      // 5. Append Video File (if it exists)
       if (
         videoFile
       ) {
@@ -453,7 +583,7 @@ export default function AddEditCar() {
             },
           );
           alert(
-            "New vehicle uploaded to live inventory and saved to Cloudinary!",
+            "New vehicle uploaded to live inventory!",
           );
         }
         navigate(
@@ -465,7 +595,7 @@ export default function AddEditCar() {
           error,
         );
         alert(
-          "Failed to save vehicle listing. Check terminal logs.",
+          "Failed to save vehicle listing.",
         );
       } finally {
         setIsSubmitting(
@@ -474,9 +604,17 @@ export default function AddEditCar() {
       }
     };
 
+  const availableModels =
+    formData.make
+      ? CAR_MODELS_MAP[
+          formData
+            .make
+        ] ||
+        []
+      : [];
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
-      {/* Top Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link
@@ -498,15 +636,11 @@ export default function AddEditCar() {
             <p className="text-slate-500 text-sm">
               Fill
               in
-              the
               specifications
               and
               images
               to
               post
-              to
-              the
-              public
               catalog.
             </p>
           </div>
@@ -519,7 +653,6 @@ export default function AddEditCar() {
         }
         className="space-y-8"
       >
-        {/* Section 1: Basic Information */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
             Basic
@@ -534,7 +667,7 @@ export default function AddEditCar() {
               </label>
               <input
                 type="text"
-                placeholder="e.g. 2021 Mercedes-Benz GLE 450 AMG"
+                placeholder="e.g. 2026 Tesla Model 3 Long Range"
                 required
                 value={
                   formData.title
@@ -560,63 +693,196 @@ export default function AddEditCar() {
               <label className="block text-sm font-semibold text-slate-700 mb-1">
                 Make
               </label>
-              <input
-                type="text"
-                placeholder="e.g. Mercedes-Benz"
+              <select
                 required
                 value={
-                  formData.make
+                  makeOption
                 }
-                onChange={(
-                  e,
-                ) =>
-                  setFormData(
-                    {
-                      ...formData,
-                      make: e
-                        .target
-                        .value,
-                    },
-                  )
+                onChange={
+                  handleMakeSelectChange
                 }
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
-              />
+              >
+                <option value="">
+                  Select
+                  Make...
+                </option>
+                {TOP_MAKES.map(
+                  (
+                    make,
+                  ) => (
+                    <option
+                      key={
+                        make
+                      }
+                      value={
+                        make
+                      }
+                    >
+                      {
+                        make
+                      }
+                    </option>
+                  ),
+                )}
+                <option
+                  disabled
+                  className="text-slate-400"
+                >
+                  ──────────────────
+                </option>
+                {ALPHABETICAL_MAKES.map(
+                  (
+                    make,
+                  ) => (
+                    <option
+                      key={
+                        make
+                      }
+                      value={
+                        make
+                      }
+                    >
+                      {
+                        make
+                      }
+                    </option>
+                  ),
+                )}
+                <option
+                  disabled
+                  className="text-slate-400"
+                >
+                  ──────────────────
+                </option>
+                <option value="Other">
+                  Other
+                  (Custom
+                  Make)
+                </option>
+              </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">
-                Model
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. GLE 450"
-                required
-                value={
-                  formData.model
-                }
-                onChange={(
-                  e,
-                ) =>
-                  setFormData(
-                    {
-                      ...formData,
-                      model:
-                        e
-                          .target
-                          .value,
-                    },
-                  )
-                }
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
-              />
-            </div>
+            {makeOption ===
+            "Other" ? (
+              <>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">
+                    Custom
+                    Make
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Peugeot, Bugatti"
+                    required
+                    value={
+                      formData.make
+                    }
+                    onChange={(
+                      e,
+                    ) =>
+                      setFormData(
+                        {
+                          ...formData,
+                          make: e
+                            .target
+                            .value,
+                        },
+                      )
+                    }
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1">
+                    Custom
+                    Model
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. 504, Chiron"
+                    required
+                    value={
+                      formData.model
+                    }
+                    onChange={(
+                      e,
+                    ) =>
+                      setFormData(
+                        {
+                          ...formData,
+                          model:
+                            e
+                              .target
+                              .value,
+                        },
+                      )
+                    }
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              </>
+            ) : (
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Model
+                </label>
+                <select
+                  required
+                  value={
+                    formData.model
+                  }
+                  onChange={(
+                    e,
+                  ) =>
+                    setFormData(
+                      {
+                        ...formData,
+                        model:
+                          e
+                            .target
+                            .value,
+                      },
+                    )
+                  }
+                  disabled={
+                    !formData.make
+                  }
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 disabled:bg-slate-100 disabled:text-slate-400"
+                >
+                  <option value="">
+                    {formData.make
+                      ? "Select Model..."
+                      : "Select Make First"}
+                  </option>
+                  {availableModels.map(
+                    (
+                      model,
+                    ) => (
+                      <option
+                        key={
+                          model
+                        }
+                        value={
+                          model
+                        }
+                      >
+                        {
+                          model
+                        }
+                      </option>
+                    ),
+                  )}
+                </select>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1">
                 Year
               </label>
-              <input
-                type="number"
+              <select
                 required
                 value={
                   formData.year
@@ -636,8 +902,28 @@ export default function AddEditCar() {
                   )
                 }
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
-              />
+              >
+                {YEARS.map(
+                  (
+                    yr,
+                  ) => (
+                    <option
+                      key={
+                        yr
+                      }
+                      value={
+                        yr
+                      }
+                    >
+                      {
+                        yr
+                      }
+                    </option>
+                  ),
+                )}
+              </select>
             </div>
+
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1">
                 Category
@@ -686,7 +972,6 @@ export default function AddEditCar() {
           </div>
         </div>
 
-        {/* Section 2: Pricing & FX Valuation */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
           <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
             Pricing
@@ -694,7 +979,6 @@ export default function AddEditCar() {
             FX
             Valuation
           </h2>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1">
@@ -717,7 +1001,6 @@ export default function AddEditCar() {
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
               />
             </div>
-
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1">
                 Calculated
@@ -749,467 +1032,8 @@ export default function AddEditCar() {
               />
             </div>
           </div>
-
-          <div className="flex items-center gap-3 pt-2">
-            <input
-              type="checkbox"
-              id="isNegotiable"
-              checked={
-                formData.isNegotiable
-              }
-              onChange={(
-                e,
-              ) =>
-                setFormData(
-                  {
-                    ...formData,
-                    isNegotiable:
-                      e
-                        .target
-                        .checked,
-                  },
-                )
-              }
-              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-            />
-            <label
-              htmlFor="isNegotiable"
-              className="text-sm font-semibold text-slate-700 cursor-pointer"
-            >
-              Mark
-              Price
-              as
-              Negotiable
-              on
-              Public
-              Site
-            </label>
-          </div>
         </div>
 
-        {/* Section 3: Technical Specifications */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
-            Technical
-            Specifications
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">
-                Mileage
-                (Miles)
-              </label>
-              <input
-                type="number"
-                placeholder="e.g. 24000"
-                required
-                value={
-                  formData
-                    .specs
-                    .mileage
-                }
-                onChange={(
-                  e,
-                ) =>
-                  setFormData(
-                    {
-                      ...formData,
-                      specs:
-                        {
-                          ...formData.specs,
-                          mileage:
-                            e
-                              .target
-                              .value,
-                        },
-                    },
-                  )
-                }
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">
-                Transmission
-              </label>
-              <select
-                value={
-                  formData
-                    .specs
-                    .transmission
-                }
-                onChange={(
-                  e,
-                ) =>
-                  setFormData(
-                    {
-                      ...formData,
-                      specs:
-                        {
-                          ...formData.specs,
-                          transmission:
-                            e
-                              .target
-                              .value,
-                        },
-                    },
-                  )
-                }
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
-              >
-                <option value="Automatic">
-                  Automatic
-                </option>
-                <option value="Manual">
-                  Manual
-                </option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">
-                Engine
-                Type
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. 3.0L Turbo V6"
-                required
-                value={
-                  formData
-                    .specs
-                    .engineType
-                }
-                onChange={(
-                  e,
-                ) =>
-                  setFormData(
-                    {
-                      ...formData,
-                      specs:
-                        {
-                          ...formData.specs,
-                          engineType:
-                            e
-                              .target
-                              .value,
-                        },
-                    },
-                  )
-                }
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">
-                VIN
-                (Optional)
-              </label>
-              <input
-                type="text"
-                placeholder="17-Digit Vehicle ID"
-                value={
-                  formData
-                    .specs
-                    .vin
-                }
-                onChange={(
-                  e,
-                ) =>
-                  setFormData(
-                    {
-                      ...formData,
-                      specs:
-                        {
-                          ...formData.specs,
-                          vin: e
-                            .target
-                            .value,
-                        },
-                    },
-                  )
-                }
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 uppercase"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1">
-                Exterior
-                Color
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Midnight Black"
-                value={
-                  formData
-                    .specs
-                    .color
-                }
-                onChange={(
-                  e,
-                ) =>
-                  setFormData(
-                    {
-                      ...formData,
-                      specs:
-                        {
-                          ...formData.specs,
-                          color:
-                            e
-                              .target
-                              .value,
-                        },
-                    },
-                  )
-                }
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Section 4: Key Features */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
-            Key
-            Features
-          </h2>
-
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="e.g. Panoramic Sunroof"
-              value={
-                featureInput
-              }
-              onChange={(
-                e,
-              ) =>
-                setFeatureInput(
-                  e
-                    .target
-                    .value,
-                )
-              }
-              className="flex-grow bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
-            />
-            <button
-              type="button"
-              onClick={
-                addFeature
-              }
-              className="bg-slate-900 text-white px-4 py-2.5 rounded-lg text-sm font-bold flex items-center gap-1 hover:bg-slate-800 transition-colors"
-            >
-              <Plus
-                size={
-                  16
-                }
-              />{" "}
-              Add
-            </button>
-          </div>
-
-          <div className="flex flex-wrap gap-2 pt-2">
-            {features.map(
-              (
-                feature,
-                idx,
-              ) => (
-                <span
-                  key={
-                    idx
-                  }
-                  className="bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-2"
-                >
-                  <CheckCircle2
-                    size={
-                      14
-                    }
-                    className="text-emerald-500"
-                  />
-                  {
-                    feature
-                  }
-                  <button
-                    type="button"
-                    onClick={() =>
-                      removeFeature(
-                        idx,
-                      )
-                    }
-                    className="text-slate-400 hover:text-red-500"
-                  >
-                    <X
-                      size={
-                        14
-                      }
-                    />
-                  </button>
-                </span>
-              ),
-            )}
-          </div>
-        </div>
-
-        {/* Section 5: Image Upload */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
-            Vehicle
-            Images
-          </h2>
-
-          <div className="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-2xl p-8 text-center bg-slate-50 transition-colors cursor-pointer relative">
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={
-                handleImageChange
-              }
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
-            <Upload
-              size={
-                32
-              }
-              className="mx-auto text-slate-400 mb-2"
-            />
-            <p className="text-sm font-bold text-slate-700">
-              Click
-              or
-              Drag
-              &
-              Drop
-              Images
-              Here
-            </p>
-            <p className="text-xs text-slate-400 mt-1">
-              Supports
-              PNG,
-              JPG,
-              or
-              WEBP
-              (Max
-              5MB
-              per
-              file)
-            </p>
-          </div>
-
-          {/* Image Previews Grid with Main Image Selector */}
-          {imagePreviews.length >
-            0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4 pt-4">
-              {imagePreviews.map(
-                (
-                  src,
-                  idx,
-                ) => (
-                  <div
-                    key={
-                      idx
-                    }
-                    onClick={() =>
-                      setMainImageIndex(
-                        idx,
-                      )
-                    }
-                    className={`relative h-28 rounded-xl overflow-hidden border-4 cursor-pointer transition-all ${
-                      mainImageIndex ===
-                      idx
-                        ? "border-blue-600 shadow-md"
-                        : "border-transparent"
-                    }`}
-                  >
-                    <img
-                      src={
-                        src
-                      }
-                      alt="preview"
-                      className="w-full h-full object-cover"
-                    />
-
-                    {mainImageIndex ===
-                      idx && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-blue-600 text-white text-[10px] text-center font-bold py-1">
-                        MAIN
-                        IMAGE
-                      </div>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={(
-                        e,
-                      ) => {
-                        e.stopPropagation();
-                        removeImage(
-                          idx,
-                        );
-                      }}
-                      className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded-full opacity-90 hover:opacity-100 transition-opacity"
-                    >
-                      <Trash2
-                        size={
-                          14
-                        }
-                      />
-                    </button>
-                  </div>
-                ),
-              )}
-            </div>
-          )}
-
-          {/* Video Upload Section */}
-          <div className="mt-6 border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-2xl p-8 text-center bg-slate-50 transition-colors cursor-pointer relative">
-            <input
-              type="file"
-              accept="video/mp4,video/webm"
-              onChange={
-                handleVideoChange
-              }
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
-            <Upload
-              size={
-                32
-              }
-              className="mx-auto text-slate-400 mb-2"
-            />
-            <p className="text-sm font-bold text-slate-700">
-              Upload
-              Walkaround
-              Video
-              (Max
-              45s)
-            </p>
-            <p className="text-xs text-slate-400 mt-1">
-              Supports
-              MP4,
-              WebM
-              (Max
-              15MB)
-            </p>
-          </div>
-          {videoPreview && (
-            <div className="mt-4 rounded-xl overflow-hidden border border-slate-200">
-              <video
-                src={
-                  videoPreview
-                }
-                controls
-                className="w-full h-48 object-cover bg-black"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Submit Actions */}
         <div className="flex justify-end gap-4">
           <Link
             to="/admin/inventory"
@@ -1225,7 +1049,7 @@ export default function AddEditCar() {
             className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white px-8 py-3 rounded-lg font-bold transition-colors shadow-md"
           >
             {isSubmitting
-              ? "Uploading to Cloudinary..."
+              ? "Uploading..."
               : isEditMode
                 ? "Save Changes"
                 : "Publish Listing"}
