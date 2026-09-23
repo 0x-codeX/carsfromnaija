@@ -152,12 +152,20 @@ export default function RecentSales() {
                   <img
                     src={
                       sale.image ||
-                      "https://via.placeholder.com/600x400?text=Sold+Car"
+                      "/logo.png"
                     }
                     alt={
                       sale.title
                     }
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={(
+                      e,
+                    ) => {
+                      e.currentTarget.onerror =
+                        null;
+                      e.currentTarget.src =
+                        "/logo.png";
+                    }}
                   />
 
                   {/* Dark gradient overlay for visual contrast */}

@@ -26,7 +26,7 @@ export default function Footer() {
         {/* Social Media Links */}
         <div className="flex space-x-6">
           <a
-            href="https://facebook.com/yourpage"
+            href="https://facebook.com/carsfromnaija"
             target="_blank"
             rel="noopener noreferrer"
             className="text-gray-400 hover:text-blue-500 transition-colors duration-300"
@@ -40,7 +40,7 @@ export default function Footer() {
           </a>
 
           <a
-            href="https://instagram.com/yourpage"
+            href="https://instagram.com/@carsfromnaija"
             target="_blank"
             rel="noopener noreferrer"
             className="text-gray-400 hover:text-pink-500 transition-colors duration-300"
@@ -54,7 +54,7 @@ export default function Footer() {
           </a>
 
           <a
-            href="https://www.tiktok.com/search?q=Obong&t=1790083606231"
+            href="https://www.tiktok.com/@carsfromnaija"
             target="_blank"
             rel="noopener noreferrer"
             className="text-gray-400 hover:text-white transition-colors duration-300"

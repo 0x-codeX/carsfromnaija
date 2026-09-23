@@ -17,6 +17,8 @@ const recentSaleSchema =
       image:
         {
           type: String,
+          default:
+            "/Logo1.png",
         },
       imagePublicId:
         {

@@ -244,12 +244,15 @@ exports.createCar =
           : 0;
       const mainImageUrl =
         imageResults.length >
-        0
+          0 &&
+        imageResults[
+          mainIndex
+        ]
           ? imageResults[
               mainIndex
             ]
               .url
-          : "";
+          : "/logo.png";
 
       const carData =
         {
@@ -495,6 +498,34 @@ exports.updateCar =
         };
 
       delete updateData.existingImages;
+
+      const mainIndex =
+        req
+          .body
+          .mainImageIndex
+          ? parseInt(
+              req
+                .body
+                .mainImageIndex,
+            )
+          : 0;
+      const mainImageUrl =
+        finalImages.length >
+          0 &&
+        finalImages[
+          mainIndex
+        ]
+          ? finalImages[
+              mainIndex
+            ]
+              .url ||
+            finalImages[
+              mainIndex
+            ]
+          : "/logo.png";
+
+      updateData.mainImage =
+        mainImageUrl;
 
       const updatedCar =
         await Car.findByIdAndUpdate(

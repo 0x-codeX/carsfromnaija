@@ -109,7 +109,8 @@ const carSchema =
       mainImage:
         {
           type: String,
-          required: true,
+          default:
+            "/logo.png",
         },
       video:
         {

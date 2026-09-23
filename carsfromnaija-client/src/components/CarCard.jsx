@@ -18,15 +18,29 @@ export default function CarCard({
       <div className="relative h-48 w-full bg-slate-100 overflow-hidden">
         <img
           src={
-            car
-              .images?.[0]
-              ?.url ||
-            "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&q=80&w=800"
+            car.mainImage ||
+            (typeof car
+              .images?.[0] ===
+            "string"
+              ? car
+                  .images[0]
+              : car
+                  .images?.[0]
+                  ?.url) ||
+            "/logo.png"
           }
           alt={
             car.title
           }
           className="w-full h-full object-cover"
+          onError={(
+            e,
+          ) => {
+            e.currentTarget.onerror =
+              null;
+            e.currentTarget.src =
+              "/logo.png";
+          }}
         />
         <div className="absolute top-3 left-3 flex gap-2">
           {isSold ? (

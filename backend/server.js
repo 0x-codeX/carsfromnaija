@@ -52,6 +52,22 @@ app.get(
   },
 );
 
+app.get(
+  "/health",
+  (
+    req,
+    res,
+  ) => {
+    res
+      .status(
+        200,
+      )
+      .send(
+        "OK",
+      );
+  },
+);
+
 // Database Connection
 mongoose
   .connect(

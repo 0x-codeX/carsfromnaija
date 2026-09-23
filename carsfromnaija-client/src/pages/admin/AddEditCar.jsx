@@ -462,6 +462,150 @@ export default function AddEditCar() {
     useState(
       0,
     );
+  const [
+    existingImages,
+    setExistingImages,
+  ] =
+    useState(
+      [],
+    );
+
+  useEffect(() => {
+    if (
+      isEditMode
+    ) {
+      const fetchCar =
+        async () => {
+          try {
+            const {
+              data,
+            } =
+              await API.get(
+                `/cars/${id}`,
+              );
+            setFormData(
+              {
+                title:
+                  data.title ||
+                  "",
+                make:
+                  data.make ||
+                  "",
+                model:
+                  data.model ||
+                  "",
+                year:
+                  data.year ||
+                  new Date().getFullYear(),
+                priceNGN:
+                  data.priceNGN ||
+                  "",
+                isNegotiable:
+                  data.isNegotiable ??
+                  true,
+                category:
+                  data.category ||
+                  "",
+                condition:
+                  data.condition ||
+                  "Foreign Used",
+                bodyType:
+                  data.bodyType ||
+                  "",
+                specs:
+                  data.specs || {
+                    mileage:
+                      "",
+                    transmission:
+                      "Automatic",
+                    engineType:
+                      "",
+                    vin: "",
+                    color:
+                      "",
+                  },
+              },
+            );
+
+            if (
+              data.title
+            )
+              setIsTitleCustomized(
+                true,
+              );
+            setMakeOption(
+              ALL_PRESET_MAKES.includes(
+                data.make,
+              )
+                ? data.make
+                : data.make
+                  ? "Other"
+                  : "",
+            );
+            if (
+              data.features
+            )
+              setFeatures(
+                data.features,
+              );
+
+            if (
+              data.images &&
+              data
+                .images
+                .length >
+                0
+            ) {
+              setExistingImages(
+                data.images,
+              );
+              const mainIdx =
+                data.images.findIndex(
+                  (
+                    img,
+                  ) =>
+                    img.url ===
+                    data.mainImage,
+                );
+              setMainImageIndex(
+                mainIdx !==
+                  -1
+                  ? mainIdx
+                  : 0,
+              );
+            }
+
+            if (
+              data.video &&
+              data
+                .video
+                .url
+            )
+              setVideoPreview(
+                data
+                  .video
+                  .url,
+              );
+          } catch (error) {
+            console.error(
+              "Error fetching car:",
+              error,
+            );
+            alert(
+              "Failed to load vehicle details.",
+            );
+            navigate(
+              "/admin/inventory",
+            );
+          }
+        };
+      fetchCar();
+    }
+  }, [
+    id,
+    isEditMode,
+    navigate,
+  ]);
 
   const handleMakeSelectChange =
     (
@@ -514,17 +658,18 @@ export default function AddEditCar() {
             .files ||
             [],
         );
-
       if (
         selectedFiles.length ===
         0
-      ) {
+      )
         return;
-      }
 
+      const currentTotal =
+        existingImages.length +
+        imageFiles.length;
       const remainingSlots =
         MAX_IMAGES -
-        imageFiles.length;
+        currentTotal;
 
       if (
         remainingSlots <=
@@ -547,7 +692,6 @@ export default function AddEditCar() {
               "image/",
             ),
         );
-
       const filesToAdd =
         validFiles.slice(
           0,
@@ -559,7 +703,7 @@ export default function AddEditCar() {
         remainingSlots
       ) {
         alert(
-          `Only ${MAX_IMAGES} images are allowed. The first ${remainingSlots} additional image(s) were added.`,
+          `Only ${MAX_IMAGES} images are allowed. First ${remainingSlots} additional image(s) added.`,
         );
       }
 
@@ -580,7 +724,6 @@ export default function AddEditCar() {
           ...filesToAdd,
         ],
       );
-
       setImagePreviews(
         (
           prev,
@@ -596,7 +739,6 @@ export default function AddEditCar() {
           ),
         ],
       );
-
       e.target.value =
         "";
     };
@@ -605,46 +747,72 @@ export default function AddEditCar() {
     (
       index,
     ) => {
-      setImagePreviews(
-        (
-          prev,
-        ) => {
-          if (
-            prev[
-              index
-            ]
-          ) {
-            URL.revokeObjectURL(
+      const totalExisting =
+        existingImages.length;
+
+      if (
+        index <
+        totalExisting
+      ) {
+        // Removing a pre-existing image from the database
+        setExistingImages(
+          (
+            prev,
+          ) =>
+            prev.filter(
+              (
+                _,
+                i,
+              ) =>
+                i !==
+                index,
+            ),
+        );
+      } else {
+        // Removing a newly attached file
+        const newFileIndex =
+          index -
+          totalExisting;
+        setImagePreviews(
+          (
+            prev,
+          ) => {
+            if (
               prev[
-                index
-              ],
+                newFileIndex
+              ]
+            )
+              URL.revokeObjectURL(
+                prev[
+                  newFileIndex
+                ],
+              );
+            return prev.filter(
+              (
+                _,
+                i,
+              ) =>
+                i !==
+                newFileIndex,
             );
-          }
-          return prev.filter(
-            (
-              _,
-              i,
-            ) =>
-              i !==
-              index,
-          );
-        },
-      );
+          },
+        );
+        setImageFiles(
+          (
+            prev,
+          ) =>
+            prev.filter(
+              (
+                _,
+                i,
+              ) =>
+                i !==
+                newFileIndex,
+            ),
+        );
+      }
 
-      setImageFiles(
-        (
-          prev,
-        ) =>
-          prev.filter(
-            (
-              _,
-              i,
-            ) =>
-              i !==
-              index,
-          ),
-      );
-
+      // Shift the main image index down dynamically so it doesn't break
       setMainImageIndex(
         (
           prev,
@@ -652,18 +820,16 @@ export default function AddEditCar() {
           if (
             index ===
             prev
-          ) {
+          )
             return 0;
-          }
           if (
             index <
             prev
-          ) {
+          )
             return (
               prev -
               1
             );
-          }
           return prev;
         },
       );
@@ -731,6 +897,12 @@ export default function AddEditCar() {
       submitData.append(
         "mainImageIndex",
         mainImageIndex,
+      );
+      submitData.append(
+        "existingImages",
+        JSON.stringify(
+          existingImages,
+        ),
       );
 
       imageFiles.forEach(
@@ -849,6 +1021,16 @@ export default function AddEditCar() {
         ] ||
         []
       : [];
+  const combinedImagePreviews =
+    [
+      ...existingImages.map(
+        (
+          img,
+        ) =>
+          img.url,
+      ),
+      ...imagePreviews,
+    ];
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
@@ -1656,10 +1838,10 @@ export default function AddEditCar() {
             </div>
 
             {/* Image Previews Grid */}
-            {imagePreviews.length >
+            {combinedImagePreviews.length >
               0 && (
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4 pt-4">
-                {imagePreviews.map(
+                {combinedImagePreviews.map(
                   (
                     src,
                     idx,

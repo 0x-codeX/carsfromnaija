@@ -163,7 +163,6 @@ export default function CarDetail() {
     );
   }
 
-  // Normalizer helper to extract image URL (supports string arrays or Cloudinary object arrays)
   const getImageUrl =
     (
       img,
@@ -171,7 +170,7 @@ export default function CarDetail() {
       if (
         !img
       )
-        return "https://via.placeholder.com/800x600?text=No+Image+Available";
+        return "/logo.png";
       return typeof img ===
         "string"
         ? img
@@ -235,7 +234,7 @@ export default function CarDetail() {
       {/* Back Button */}
       <div className="mb-6">
         <Link
-          to="/"
+          to="/inventory"
           className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-900 font-bold text-sm transition-colors"
         >
           <ArrowLeft
@@ -318,8 +317,10 @@ export default function CarDetail() {
               onError={(
                 e,
               ) => {
-                e.target.src =
-                  "https://via.placeholder.com/800x600?text=Image+Load+Error";
+                e.currentTarget.onerror =
+                  null;
+                e.currentTarget.src =
+                  "/logo.png";
               }}
             />
           </div>
