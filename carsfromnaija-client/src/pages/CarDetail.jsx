@@ -298,18 +298,7 @@ export default function CarDetail() {
     <div className="container mx-auto px-4 py-12 max-w-6xl">
       {/* SEO INJECTION START */}
       <Helmet>
-        <title>
-          {
-            car.title
-          }{" "}
-          for
-          Sale
-          in
-          Lagos,
-          Nigeria
-          |
-          YourDealershipName
-        </title>
+        <title>{`${car.title} for Sale in Lagos, Nigeria | CarsFromNaija`}</title>
         <meta
           name="description"
           content={`Buy this ${car.condition || "used"} ${car.year || ""} ${car.make || ""} ${car.model || ""} in Lagos. Price: ₦${car.priceNGN ? Number(car.priceNGN).toLocaleString() : "Contact for price"}. Contact us on WhatsApp today.`}
