@@ -223,21 +223,23 @@ export default function InventoryManager() {
                       key={
                         car._id
                       }
-                      className="hover:bg-slate-50 transition-colors"
+                      className="hover:bg-slate-50 transition-colors group"
                     >
                       <td className="p-4 flex items-center gap-3">
-                        <img
-                          src={
-                            car
-                              .images?.[0]
-                              ?.url ||
-                            "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=150&q=80"
-                          }
-                          alt={
-                            car.title
-                          }
-                          className="w-12 h-12 rounded-lg object-cover bg-slate-100"
-                        />
+                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
+                          <img
+                            src={
+                              car
+                                .images?.[0]
+                                ?.url ||
+                              "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=150&q=80"
+                            }
+                            alt={
+                              car.title
+                            }
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                          />
+                        </div>
                         <div>
                           <p className="font-bold text-slate-900">
                             {

@@ -13,7 +13,7 @@ export default function CarCard({
     "sold";
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-slate-200 flex flex-col">
+    <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-slate-200 flex flex-col">
       {/* Image & Status Badge Container */}
       <div className="relative h-48 w-full bg-slate-100 overflow-hidden">
         <img
@@ -32,7 +32,7 @@ export default function CarCard({
           alt={
             car.title
           }
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           onError={(
             e,
           ) => {

@@ -26,7 +26,7 @@ export default function Footer() {
         {/* Social Media Links */}
         <div className="flex space-x-6">
           <a
-            href="https://facebook.com/carsfromnaija"
+            href="https://www.facebook.com/share/1AXrvqLEUH/"
             target="_blank"
             rel="noopener noreferrer"
             className="text-gray-400 hover:text-blue-500 transition-colors duration-300"
@@ -40,7 +40,7 @@ export default function Footer() {
           </a>
 
           <a
-            href="https://instagram.com/@carsfromnaija"
+            href="https://instagram.com/carsfromnaija"
             target="_blank"
             rel="noopener noreferrer"
             className="text-gray-400 hover:text-pink-500 transition-colors duration-300"
@@ -68,7 +68,7 @@ export default function Footer() {
           </a>
 
           <a
-            href="https://wa.me/2348059975887"
+            href="https://wa.me/2348059975887?text=Hi%20CarsFromNaija%2C%20I%20want%20to%20inquire%20about%20a%20car."
             target="_blank"
             rel="noopener noreferrer"
             className="text-gray-400 hover:text-green-500 transition-colors duration-300"

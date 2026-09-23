@@ -14,6 +14,10 @@ import {
   Mail,
   ArrowLeft,
   AlertCircle,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Maximize2,
 } from "lucide-react";
 import CostCalculator from "../components/CostCalculator";
 import API from "../api/axios";
@@ -75,6 +79,13 @@ export default function CarDetail() {
   ] =
     useState(
       null,
+    );
+  const [
+    isModalOpen,
+    setIsModalOpen,
+  ] =
+    useState(
+      false,
     );
 
   useEffect(() => {
@@ -294,6 +305,46 @@ export default function CarDetail() {
         },
     };
 
+    const handlePrevImage =
+      () => {
+        if (
+          images.length <=
+          1
+        )
+          return;
+        setActiveImage(
+          (
+            prev,
+          ) =>
+            prev ===
+            0
+              ? images.length -
+                1
+              : prev -
+                1,
+        );
+      };
+
+    const handleNextImage =
+      () => {
+        if (
+          images.length <=
+          1
+        )
+          return;
+        setActiveImage(
+          (
+            prev,
+          ) =>
+            prev ===
+            images.length -
+              1
+              ? 0
+              : prev +
+                1,
+        );
+      };
+
   return (
     <div className="container mx-auto px-4 py-12 max-w-6xl">
       {/* SEO INJECTION START */}
@@ -404,7 +455,7 @@ export default function CarDetail() {
           </div>
 
           {/* Main Display Image */}
-          <div className="bg-slate-100 rounded-2xl overflow-hidden h-80 md:h-96 border border-slate-200">
+          <div className="relative group bg-slate-100 rounded-2xl overflow-hidden h-80 md:h-96 border border-slate-200 cursor-pointer">
             <img
               src={
                 mainImageUrl
@@ -413,7 +464,12 @@ export default function CarDetail() {
                 car.title ||
                 "Vehicle display"
               }
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover select-none transition-transform duration-300 group-hover:scale-105"
+              onClick={() =>
+                setIsModalOpen(
+                  true,
+                )
+              }
               onError={(
                 e,
               ) => {
@@ -423,6 +479,76 @@ export default function CarDetail() {
                   "/logo.png";
               }}
             />
+
+            {/* Enlarge/Zoom Badge Indicator */}
+            <button
+              type="button"
+              onClick={() =>
+                setIsModalOpen(
+                  true,
+                )
+              }
+              className="absolute top-3 right-3 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full backdrop-blur-sm transition-all opacity-80 group-hover:opacity-100"
+              title="Click to Enlarge"
+            >
+              <Maximize2
+                size={
+                  18
+                }
+              />
+            </button>
+
+            {/* Left & Right Navigation Arrows */}
+            {images.length >
+              1 && (
+              <>
+                <button
+                  onClick={(
+                    e,
+                  ) => {
+                    e.stopPropagation();
+                    handlePrevImage();
+                  }}
+                  type="button"
+                  aria-label="Previous image"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-2.5 rounded-full backdrop-blur-sm transition-all border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 active:scale-95"
+                >
+                  <ChevronLeft
+                    size={
+                      22
+                    }
+                  />
+                </button>
+
+                <button
+                  onClick={(
+                    e,
+                  ) => {
+                    e.stopPropagation();
+                    handleNextImage();
+                  }}
+                  type="button"
+                  aria-label="Next image"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white p-2.5 rounded-full backdrop-blur-sm transition-all border border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 active:scale-95"
+                >
+                  <ChevronRight
+                    size={
+                      22
+                    }
+                  />
+                </button>
+
+                {/* Image Counter Badge */}
+                <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm select-none">
+                  {activeImage +
+                    1}{" "}
+                  /{" "}
+                  {
+                    images.length
+                  }
+                </div>
+              </>
+            )}
           </div>
 
           {/* Image & Video Thumbnails Grid */}
@@ -759,6 +885,105 @@ export default function CarDetail() {
           </div>
         </div>
       </div>
+      {/* Enlarged Image Lightbox Modal */}
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 sm:p-8 animate-fadeIn"
+          onClick={() =>
+            setIsModalOpen(
+              false,
+            )
+          }
+        >
+          {/* Close Button */}
+          <button
+            onClick={() =>
+              setIsModalOpen(
+                false,
+              )
+            }
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 p-2.5 rounded-full backdrop-blur-sm transition-all z-10"
+            aria-label="Close preview"
+          >
+            <X
+              size={
+                24
+              }
+            />
+          </button>
+
+          {/* Modal Container */}
+          <div
+            className="relative max-w-5xl w-full max-h-[85vh] flex items-center justify-center select-none"
+            onClick={(
+              e,
+            ) =>
+              e.stopPropagation()
+            }
+          >
+            <img
+              src={
+                mainImageUrl
+              }
+              alt={
+                car.title ||
+                "Enlarged vehicle view"
+              }
+              className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl"
+            />
+
+            {/* Modal Left & Right Navigation Controls */}
+            {images.length >
+              1 && (
+              <>
+                <button
+                  onClick={(
+                    e,
+                  ) => {
+                    e.stopPropagation();
+                    handlePrevImage();
+                  }}
+                  className="absolute left-2 sm:-left-6 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/90 text-white p-3 rounded-full border border-white/20 transition-all backdrop-blur-sm active:scale-95"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft
+                    size={
+                      28
+                    }
+                  />
+                </button>
+
+                <button
+                  onClick={(
+                    e,
+                  ) => {
+                    e.stopPropagation();
+                    handleNextImage();
+                  }}
+                  className="absolute right-2 sm:-right-6 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/90 text-white p-3 rounded-full border border-white/20 transition-all backdrop-blur-sm active:scale-95"
+                  aria-label="Next image"
+                >
+                  <ChevronRight
+                    size={
+                      28
+                    }
+                  />
+                </button>
+
+                {/* Modal Counter */}
+                <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-white/80 text-sm font-medium tracking-wide">
+                  {activeImage +
+                    1}{" "}
+                  of{" "}
+                  {
+                    images.length
+                  }
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
