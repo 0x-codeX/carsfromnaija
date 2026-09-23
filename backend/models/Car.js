@@ -111,6 +111,21 @@ const carSchema =
               }, // Needed to delete images from Cloudinary
           },
         ],
+      mainImage:
+        {
+          type: String,
+          required: true,
+        },
+      video:
+        {
+          url: {
+            type: String,
+          },
+          public_id:
+            {
+              type: String,
+            },
+        },
     },
     {
       timestamps: true,

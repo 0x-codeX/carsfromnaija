@@ -7,6 +7,7 @@ const {
 // Enforce strict inventory limits to stay on free tiers
 const MAX_INVENTORY_SIZE = 20;
 
+
 // @desc    Get all cars
 // @route   GET /api/cars
 exports.getCars =
@@ -161,18 +162,25 @@ exports.createCar =
         }
       }
 
-      // 2. Process multi-image uploads concurrently
       let imageResults =
         [];
+      let videoResult =
+        null;
+
+      // Process Images
       if (
         req.files &&
         req
           .files
+          .images &&
+        req
+          .files
+          .images
           .length >
           0
       ) {
         const uploadPromises =
-          req.files.map(
+          req.files.images.map(
             (
               file,
             ) =>
@@ -196,7 +204,53 @@ exports.createCar =
           );
       }
 
-      // 3. Parse FormData JSON strings
+      // Process Video
+      if (
+        req.files &&
+        req
+          .files
+          .video &&
+        req
+          .files
+          .video
+          .length >
+          0
+      ) {
+        const vidUpload =
+          await uploadToCloudinary(
+            req
+              .files
+              .video[0]
+              .buffer,
+          );
+        videoResult =
+          {
+            url: vidUpload.secure_url,
+            public_id:
+              vidUpload.public_id,
+          };
+      }
+
+      // Determine the Main Representing Image
+      const mainIndex =
+        req
+          .body
+          .mainImageIndex
+          ? parseInt(
+              req
+                .body
+                .mainImageIndex,
+            )
+          : 0;
+      const mainImageUrl =
+        imageResults.length >
+        0
+          ? imageResults[
+              mainIndex
+            ]
+              .url
+          : "";
+
       const carData =
         {
           ...req.body,
@@ -228,6 +282,10 @@ exports.createCar =
                   .features,
           images:
             imageResults,
+          mainImage:
+            mainImageUrl,
+          video:
+            videoResult,
         };
 
       const newCar =
@@ -479,91 +537,40 @@ exports.updateCar =
 
 // @desc    Delete a car and its images concurrently
 // @route   DELETE /api/cars/:id
-exports.deleteCar =
-  async (
-    req,
-    res,
-  ) => {
-    try {
-      const car =
-        await Car.findById(
-          req
-            .params
-            .id,
-        );
-      if (
-        !car
-      ) {
-        return res
-          .status(
-            404,
-          )
-          .json(
-            {
-              message:
-                "Vehicle not found.",
-            },
-          );
-      }
-
-      // Destroy all attached images on Cloudinary in parallel
-      if (
-        car.images &&
-        car
-          .images
-          .length >
-          0
-      ) {
-        const destroyPromises =
-          car.images
-            .filter(
-              (
-                image,
-              ) =>
-                image.public_id,
-            )
-            .map(
-              (
-                image,
-              ) =>
-                cloudinary.uploader.destroy(
-                  image.public_id,
-                ),
-            );
-        await Promise.all(
-          destroyPromises,
-        );
-      }
-
-      await Car.findByIdAndDelete(
-        req
-          .params
-          .id,
-      );
-      res
-        .status(
-          200,
-        )
-        .json(
-          {
-            message:
-              "Vehicle and images permanently removed.",
-          },
-        );
-    } catch (error) {
-      console.error(
-        "Error deleting car:",
-        error,
-      );
-      res
-        .status(
-          500,
-        )
-        .json(
-          {
-            message:
-              "Server error while deleting vehicle.",
-          },
-        );
+// Replace your existing deleteCar function in carController_2.js with this:
+exports.deleteCar = async (req, res) => {
+  try {
+    const car = await Car.findById(req.params.id);
+    if (!car) {
+      return res.status(404).json({ message: "Vehicle not found." });
     }
-  };
+
+    const keepMainImage = req.query.keepMainImage === "true";
+    const mainImageUrl = car.mainImage;
+
+    // 1. Destroy gallery images on Cloudinary, optionally skipping the main image
+    if (car.images && car.images.length > 0) {
+      const imagesToDestroy = car.images.filter((image) => {
+        if (!image.public_id) return false;
+        if (keepMainImage && image.url === mainImageUrl) return false; 
+        return true;
+      });
+
+      const destroyPromises = imagesToDestroy.map((image) =>
+        cloudinary.uploader.destroy(image.public_id)
+      );
+      await Promise.all(destroyPromises);
+    }
+
+    // 2. Destroy the video (You completely missed this in your original delete route)
+    if (car.video && car.video.public_id) {
+      await cloudinary.uploader.destroy(car.video.public_id);
+    }
+
+    await Car.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: "Vehicle removed. Cloudinary pruned securely." });
+  } catch (error) {
+    console.error("Error deleting car:", error);
+    res.status(500).json({ message: "Server error while deleting vehicle." });
+  }
+};

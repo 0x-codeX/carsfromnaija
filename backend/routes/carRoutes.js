@@ -21,12 +21,20 @@ router
     getCars,
   )
   .post(
-    upload.array(
-      "images",
-      5,
+    upload.fields(
+      [
+        {
+          name: "images",
+          maxCount: 10,
+        },
+        {
+          name: "video",
+          maxCount: 1,
+        },
+      ],
     ),
     createCar,
-  );
+  );;
 
 router
   .route(
@@ -36,9 +44,17 @@ router
     getCarById,
   )
   .put(
-    upload.array(
-      "images",
-      5,
+    upload.fields(
+      [
+        {
+          name: "images",
+          maxCount: 10,
+        },
+        {
+          name: "video",
+          maxCount: 1,
+        },
+      ],
     ),
     updateCar,
   )

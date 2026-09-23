@@ -19,22 +19,19 @@ cloudinary.config(
   },
 );
 
-// Store file in memory temporarily before streaming to Cloudinary
-const storage =
-  multer.memoryStorage();
 const upload =
   multer({
-    storage,
+    storage:
+      multer.memoryStorage(),
     limits:
       {
         fileSize:
-          5 *
+          15 *
           1024 *
-          1024,
-      }, // 5MB limit per image
+          1024, // 15MB strict hard limit
+      },
   });
 
-// Helper function to upload buffers to Cloudinary
 const uploadToCloudinary =
   (
     fileBuffer,
@@ -49,6 +46,8 @@ const uploadToCloudinary =
             {
               folder:
                 "carsfromnaija_inventory",
+              resource_type:
+                "auto", 
             },
             (
               error,

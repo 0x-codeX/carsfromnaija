@@ -100,6 +100,27 @@ export default function AddEditCar() {
     useState(
       false,
     );
+  const [
+    videoFile,
+    setVideoFile,
+  ] =
+    useState(
+      null,
+    );
+  const [
+    videoPreview,
+    setVideoPreview,
+  ] =
+    useState(
+      "",
+    );
+  const [
+    mainImageIndex,
+    setMainImageIndex,
+  ] =
+    useState(
+      0,
+    );
 
   // FX Rate calculation handler
   const handleUSDChange =
@@ -130,7 +151,6 @@ export default function AddEditCar() {
       );
     };
 
-  // Handle Multi-Image Selection & Local Preview
   const handleImageChange =
     (
       e,
@@ -146,6 +166,41 @@ export default function AddEditCar() {
         0
       )
         return;
+
+      // 1. Hard constraint: 10 Images Max Total
+      const totalAfterUpload =
+        imageFiles.length +
+        files.length;
+      if (
+        totalAfterUpload >
+        10
+      ) {
+        alert(
+          `Limit exceeded! You can only upload a maximum of 10 images. You currently have ${imageFiles.length} and tried to add ${files.length}.`,
+        );
+        return;
+      }
+
+      // 2. Hard constraint: 5MB per image limit to prevent Multer size crashes
+      const oversizedFiles =
+        files.filter(
+          (
+            file,
+          ) =>
+            file.size >
+            5 *
+              1024 *
+              1024,
+        );
+      if (
+        oversizedFiles.length >
+        0
+      ) {
+        alert(
+          "One or more images exceed the 5MB size limit.",
+        );
+        return;
+      }
 
       setImageFiles(
         (
@@ -249,6 +304,42 @@ export default function AddEditCar() {
       );
     };
 
+  const handleVideoChange =
+    (
+      e,
+    ) => {
+      const file =
+        e
+          .target
+          .files[0];
+      if (
+        !file
+      )
+        return;
+
+      // Hard constraint: Reject files over 15MB to protect server RAM and bandwidth
+      if (
+        file.size >
+        15 *
+          1024 *
+          1024
+      ) {
+        alert(
+          "Video is too large. Please compress it to under 15MB.",
+        );
+        return;
+      }
+
+      setVideoFile(
+        file,
+      );
+      setVideoPreview(
+        URL.createObjectURL(
+          file,
+        ),
+      );
+    };
+
   const handleSubmit =
     async (
       e,
@@ -258,9 +349,11 @@ export default function AddEditCar() {
         true,
       );
 
-      // Build a FormData object to transport binary file buffers
+      // FormData instantiated correctly inside the function scope
       const submitData =
         new FormData();
+
+      // 1. Append Text Data
       submitData.append(
         "title",
         formData.title,
@@ -294,7 +387,7 @@ export default function AddEditCar() {
         formData.category,
       );
 
-      // Complex objects/arrays must be stringified for FormData
+      // 2. Append Stringified Objects/Arrays
       submitData.append(
         "specs",
         JSON.stringify(
@@ -308,7 +401,13 @@ export default function AddEditCar() {
         ),
       );
 
-      // Append actual selected binary image files
+      // 3. Append the Main Image Index
+      submitData.append(
+        "mainImageIndex",
+        mainImageIndex,
+      );
+
+      // 4. Append actual selected binary image files
       imageFiles.forEach(
         (
           file,
@@ -319,6 +418,16 @@ export default function AddEditCar() {
           );
         },
       );
+
+      // 5. Append Video File (if it exists)
+      if (
+        videoFile
+      ) {
+        submitData.append(
+          "video",
+          videoFile,
+        );
+      }
 
       try {
         if (
@@ -991,7 +1100,7 @@ export default function AddEditCar() {
             </p>
           </div>
 
-          {/* Image Previews Grid */}
+          {/* Image Previews Grid with Main Image Selector */}
           {imagePreviews.length >
             0 && (
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4 pt-4">
@@ -1004,7 +1113,17 @@ export default function AddEditCar() {
                     key={
                       idx
                     }
-                    className="relative h-28 rounded-xl overflow-hidden border border-slate-200 group"
+                    onClick={() =>
+                      setMainImageIndex(
+                        idx,
+                      )
+                    }
+                    className={`relative h-28 rounded-xl overflow-hidden border-4 cursor-pointer transition-all ${
+                      mainImageIndex ===
+                      idx
+                        ? "border-blue-600 shadow-md"
+                        : "border-transparent"
+                    }`}
                   >
                     <img
                       src={
@@ -1013,13 +1132,25 @@ export default function AddEditCar() {
                       alt="preview"
                       className="w-full h-full object-cover"
                     />
+
+                    {mainImageIndex ===
+                      idx && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-blue-600 text-white text-[10px] text-center font-bold py-1">
+                        MAIN
+                        IMAGE
+                      </div>
+                    )}
+
                     <button
                       type="button"
-                      onClick={() =>
+                      onClick={(
+                        e,
+                      ) => {
+                        e.stopPropagation();
                         removeImage(
                           idx,
-                        )
-                      }
+                        );
+                      }}
                       className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded-full opacity-90 hover:opacity-100 transition-opacity"
                     >
                       <Trash2
@@ -1031,6 +1162,49 @@ export default function AddEditCar() {
                   </div>
                 ),
               )}
+            </div>
+          )}
+
+          {/* Video Upload Section */}
+          <div className="mt-6 border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-2xl p-8 text-center bg-slate-50 transition-colors cursor-pointer relative">
+            <input
+              type="file"
+              accept="video/mp4,video/webm"
+              onChange={
+                handleVideoChange
+              }
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            <Upload
+              size={
+                32
+              }
+              className="mx-auto text-slate-400 mb-2"
+            />
+            <p className="text-sm font-bold text-slate-700">
+              Upload
+              Walkaround
+              Video
+              (Max
+              45s)
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              Supports
+              MP4,
+              WebM
+              (Max
+              15MB)
+            </p>
+          </div>
+          {videoPreview && (
+            <div className="mt-4 rounded-xl overflow-hidden border border-slate-200">
+              <video
+                src={
+                  videoPreview
+                }
+                controls
+                className="w-full h-48 object-cover bg-black"
+              />
             </div>
           )}
         </div>

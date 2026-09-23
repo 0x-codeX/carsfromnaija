@@ -196,8 +196,10 @@ export default function Dashboard() {
           true,
         );
 
+        // 1. Extract the secure main image URL and its corresponding public_id
         const imageUrl =
-          soldModalCar.images &&
+          soldModalCar.mainImage ||
+          (soldModalCar.images &&
           soldModalCar
             .images
             .length >
@@ -210,9 +212,22 @@ export default function Dashboard() {
               : soldModalCar
                   .images[0]
                   .url
-            : "https://via.placeholder.com/400x300?text=Vehicle+Sold";
+            : "https://via.placeholder.com/400x300?text=Vehicle+Sold");
 
-        // 1. Post to Recent Sales API
+        const mainImageObj =
+          soldModalCar.images?.find(
+            (
+              img,
+            ) =>
+              img.url ===
+              imageUrl,
+          );
+        const imagePublicId =
+          mainImageObj
+            ? mainImageObj.public_id
+            : null;
+
+        // 2. Post to Recent Sales API with the public_id attached
         const newSalePayload =
           {
             title:
@@ -223,6 +238,8 @@ export default function Dashboard() {
               ),
             image:
               imageUrl,
+            imagePublicId:
+              imagePublicId, // Crucial for eventual Cloudinary cleanup
             soldAt:
               new Date().toISOString(),
           };
@@ -232,12 +249,11 @@ export default function Dashboard() {
           newSalePayload,
         );
 
-        // 2. Delete/Remove from Active Inventory
+        // 3. Delete from Active Inventory but flag the backend to save the main image
         await API.delete(
-          `/cars/${soldModalCar._id}`,
+          `/cars/${soldModalCar._id}?keepMainImage=true`,
         );
 
-        // Reset Modal and Refresh
         setSoldModalCar(
           null,
         );
@@ -288,6 +304,8 @@ export default function Dashboard() {
             image:
               manualSaleForm.image ||
               "https://via.placeholder.com/400x300?text=Vehicle+Sold",
+            imagePublicId:
+              null, // STRICT ENFORCEMENT: Manually explicitly map this to null
             soldAt:
               new Date().toISOString(),
           };

@@ -12,7 +12,7 @@ import {
 
 export default function BudgetFinder({
   priceGuides = [],
-  dealerWhatsApp = "2348000000000",
+  dealerWhatsApp = "2348059975887",
 }) {
   const [
     searchQuery,

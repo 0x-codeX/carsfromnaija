@@ -1,3 +1,4 @@
+// Inside models/RecentSale.js
 const mongoose = require("mongoose");
 
 const recentSaleSchema =
@@ -16,6 +17,12 @@ const recentSaleSchema =
       image:
         {
           type: String,
+        },
+      imagePublicId:
+        {
+          type: String,
+          default:
+            null,
         },
       soldAt:
         {

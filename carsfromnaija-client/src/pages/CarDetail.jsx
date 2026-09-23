@@ -196,19 +196,30 @@ export default function CarDetail() {
 
   const handleWhatsApp =
     () => {
-      const phoneNumber =
+      const rawPhoneNumber =
         settings?.dealerPhoneWhatsApp ||
-        "2348000000000";
+        "2348059975887";
+      const cleanPhone =
+        rawPhoneNumber.replace(
+          /\D/g,
+          "",
+        );
+
       const formattedPrice =
         car.priceNGN
           ? Number(
               car.priceNGN,
             ).toLocaleString()
           : "N/A";
-      const text = `Hello! I am interested in the ${car.title || "vehicle"} listed for ₦${formattedPrice}. Is it still available?`;
+      const pageUrl =
+        window
+          .location
+          .href;
+
+      const text = `Hello! I am interested in the ${car.title || "vehicle"} listed for ₦${formattedPrice}.\n\nListing Link: ${pageUrl}\nImage: ${mainImageUrl}\n\nIs it still available?`;
 
       window.open(
-        `https://wa.me/${phoneNumber}?text=${encodeURIComponent(text)}`,
+        `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`,
         "_blank",
       );
     };
@@ -216,6 +227,8 @@ export default function CarDetail() {
   const dealerEmail =
     settings?.dealerEmail ||
     "sales@carsfromnaija.com";
+
+  const emailBody = `Hello,\n\nI am interested in this vehicle listing:\n\nTitle: ${car.title || "Vehicle"}\nPrice: ₦${car.priceNGN ? Number(car.priceNGN).toLocaleString() : "Contact for price"}\n\nListing Link: ${window.location.href}\nImage Reference: ${mainImageUrl}\n\nIs it still available?`;
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-6xl">
@@ -259,7 +272,7 @@ export default function CarDetail() {
             />
           </div>
 
-          {/* Image Thumbnails Grid */}
+          {/* Image & Video Thumbnails Grid */}
           {images.length >
             1 && (
             <div className="flex gap-4 overflow-x-auto pb-2">
@@ -302,6 +315,27 @@ export default function CarDetail() {
               )}
             </div>
           )}
+
+          {car.video &&
+            car
+              .video
+              .url && (
+              <div className="mt-8 bg-black rounded-2xl overflow-hidden border border-slate-800 shadow-lg">
+                <video
+                  src={
+                    car
+                      .video
+                      .url
+                  }
+                  controls
+                  controlsList="nodownload"
+                  className="w-full max-h-[400px] object-contain"
+                  poster={
+                    mainImageUrl
+                  }
+                />
+              </div>
+            )}
 
           {/* Features List */}
           {car.features &&
@@ -466,11 +500,12 @@ export default function CarDetail() {
               WhatsApp
             </button>
 
+            {/* Request via Email Button */}
             <a
               href={`mailto:${dealerEmail}?subject=Inquiry: ${encodeURIComponent(
                 car.title ||
                   "Vehicle",
-              )}&body=Hello, I am interested in this vehicle listing.`}
+              )}&body=${encodeURIComponent(emailBody)}`}
               className="flex-1 bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors shadow-md text-center"
             >
               <Mail

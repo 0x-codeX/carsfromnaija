@@ -21,7 +21,7 @@ exports.getSettings =
             standardShippingUSD: 2500,
             standardClearingNGN: 3500000,
             dealerPhoneWhatsApp:
-              "2348000000000",
+              "2348059975887",
             dealerEmail:
               "admin@yoursite.com",
             priceGuides:

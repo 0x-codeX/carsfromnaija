@@ -25,7 +25,7 @@ export default function Settings() {
         standardShippingUSD: 2500,
         standardClearingNGN: 3500000,
         dealerPhoneWhatsApp:
-          "2348000000000",
+          "+234 805 997 5887",
         dealerEmail:
           "sales@carsfromnaija.com",
         priceGuides:

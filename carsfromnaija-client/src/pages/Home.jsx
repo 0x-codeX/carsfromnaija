@@ -22,7 +22,7 @@ export default function Home() {
     useState(
       {
         dealerPhoneWhatsApp:
-          "2348000000000",
+          "+234 805 997 5887",
         priceGuides:
           [],
       },
@@ -54,7 +54,7 @@ export default function Home() {
                   response
                     .data
                     .dealerPhoneWhatsApp ||
-                  "2348000000000",
+                  "+234 805 997 5887",
                 priceGuides:
                   response
                     .data

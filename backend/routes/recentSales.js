@@ -2,6 +2,9 @@ const express = require("express");
 const router =
   express.Router();
 const RecentSale = require("../models/RecentSale");
+const {
+  cloudinary,
+} = require("../config/cloudinary");
 
 // GET: Fetch up to 3 most recent sales
 router.get(
@@ -40,7 +43,6 @@ router.get(
   },
 );
 
-// POST: Add a new recent sale
 router.post(
   "/",
   async (
@@ -48,6 +50,7 @@ router.post(
     res,
   ) => {
     try {
+      // 1. Create the new sale, explicitly mapping imagePublicId
       const newSale =
         new RecentSale(
           {
@@ -63,6 +66,11 @@ router.post(
               req
                 .body
                 .image,
+            imagePublicId:
+              req
+                .body
+                .imagePublicId ||
+              null,
             soldAt:
               req
                 .body
@@ -73,6 +81,45 @@ router.post(
 
       const savedSale =
         await newSale.save();
+
+      // 2. Strict Auto-Pruning logic
+      const MAX_RECENT_SALES = 3;
+      const currentSalesCount =
+        await RecentSale.countDocuments();
+
+      if (
+        currentSalesCount >
+        MAX_RECENT_SALES
+      ) {
+        // Find all sales older than the newest 3
+        const oldestSales =
+          await RecentSale.find()
+            .sort(
+              {
+                soldAt:
+                  -1,
+              },
+            )
+            .skip(
+              MAX_RECENT_SALES,
+            );
+
+        for (const oldSale of oldestSales) {
+          // If it was a dashboard transfer and has an image on Cloudinary, destroy it
+          if (
+            oldSale.imagePublicId
+          ) {
+            await cloudinary.uploader.destroy(
+              oldSale.imagePublicId,
+            );
+          }
+          // Remove it from the database
+          await RecentSale.findByIdAndDelete(
+            oldSale._id,
+          );
+        }
+      }
+
       res
         .status(
           201,
@@ -81,6 +128,10 @@ router.post(
           savedSale,
         );
     } catch (error) {
+      console.error(
+        "Recent Sale Error:",
+        error,
+      );
       res
         .status(
           400,
@@ -96,7 +147,7 @@ router.post(
   },
 );
 
-// DELETE: Remove a recent sale from the showcase
+
 router.delete(
   "/:id",
   async (
