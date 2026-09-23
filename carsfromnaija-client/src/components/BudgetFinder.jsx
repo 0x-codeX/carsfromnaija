@@ -12,6 +12,7 @@ import {
 
 export default function BudgetFinder({
   priceGuides = [],
+  inventory = [],
   dealerWhatsApp = "2348059975887",
 }) {
   const [
@@ -79,93 +80,176 @@ export default function BudgetFinder({
       e,
     ) => {
       e.preventDefault();
-      const query =
+      const rawQuery =
         searchQuery
           .trim()
           .toLowerCase();
       if (
-        !query
+        !rawQuery
       )
         return;
 
-      const numericQuery =
+      // 1. Bulletproof Number Parsing
+      // Strips commas to handle "15,000,000" gracefully
+      let numericQuery =
         Number(
-          query,
+          rawQuery.replace(
+            /,/g,
+            "",
+          ),
         );
+
+      // Handles casual Nigerian pricing shorthand like "15m" for 15 million
+      if (
+        rawQuery.endsWith(
+          "m",
+        ) &&
+        !isNaN(
+          parseFloat(
+            rawQuery,
+          ),
+        )
+      ) {
+        numericQuery =
+          parseFloat(
+            rawQuery,
+          ) *
+          1000000;
+      }
+
       const isNumeric =
         !isNaN(
           numericQuery,
         ) &&
         numericQuery >
           0;
+      const currentYear =
+        new Date().getFullYear() +
+        1;
 
-      const matchedCars =
-        priceGuides.filter(
-          (
-            guide,
-          ) => {
-            if (
-              isNumeric
-            ) {
+      // 2. Tokenize Query for Multi-Word Matches
+      // Splits "Toyota Camry 2015" into ["toyota", "camry", "2015"]
+      const searchTokens =
+        rawQuery.split(
+          /\s+/,
+        );
+
+      // 3. Search Active Inventory First
+      const matchedInventory =
+        inventory
+          .filter(
+            (
+              car,
+            ) => {
               if (
-                numericQuery >=
-                  1990 &&
-                numericQuery <=
-                  new Date().getFullYear() +
-                    1
+                isNumeric
               ) {
                 if (
+                  numericQuery >=
+                    1990 &&
+                  numericQuery <=
+                    currentYear &&
+                  car.year ===
+                    numericQuery
+                )
+                  return true;
+                if (
+                  numericQuery >=
+                  car.priceNGN
+                )
+                  return true;
+              }
+
+              // Combine all relevant fields into one searchable master string
+              const searchableString =
+                `${car.year || ""} ${car.make || ""} ${car.model || ""} ${car.title || ""} ${car.category || ""}`.toLowerCase();
+
+              // Every word the user typed MUST exist somewhere in this master string
+              return searchTokens.every(
+                (
+                  token,
+                ) =>
+                  searchableString.includes(
+                    token,
+                  ),
+              );
+            },
+          )
+          .map(
+            (
+              car,
+            ) => ({
+              ...car,
+              isInventory: true,
+            }),
+          );
+
+      // 4. Search Market Price Guides
+      const matchedGuides =
+        priceGuides
+          .filter(
+            (
+              guide,
+            ) => {
+              if (
+                isNumeric
+              ) {
+                if (
+                  numericQuery >=
+                    1990 &&
+                  numericQuery <=
+                    currentYear &&
                   numericQuery >=
                     guide.yearStart &&
                   numericQuery <=
                     guide.yearEnd
                 )
                   return true;
+                if (
+                  numericQuery >=
+                  guide.priceMinNGN
+                )
+                  return true;
               }
-              if (
-                numericQuery >=
-                guide.priceMinNGN
-              )
-                return true;
-            }
-            const make =
-              (
-                guide.make ||
-                ""
-              ).toLowerCase();
-            const model =
-              (
-                guide.model ||
-                ""
-              ).toLowerCase();
-            const category =
-              (
-                guide.category ||
-                ""
-              ).toLowerCase();
-            return (
-              make.includes(
-                query,
-              ) ||
-              model.includes(
-                query,
-              ) ||
-              category.includes(
-                query,
-              ) ||
-              `${make} ${model}`.includes(
-                query,
-              )
-            );
-          },
-        );
 
+              // Combine guide fields into a searchable master string
+              const searchableString =
+                `${guide.yearStart || ""}-${guide.yearEnd || ""} ${guide.make || ""} ${guide.model || ""} ${guide.category || ""}`.toLowerCase();
+
+              return searchTokens.every(
+                (
+                  token,
+                ) =>
+                  searchableString.includes(
+                    token,
+                  ),
+              );
+            },
+          )
+          .map(
+            (
+              guide,
+            ) => ({
+              ...guide,
+              isInventory: false,
+            }),
+          );
+
+      // 5. Sort high-to-low if it's a budget search
       if (
         isNumeric &&
         numericQuery >
           1000000
       ) {
-        matchedCars.sort(
+        matchedInventory.sort(
+          (
+            a,
+            b,
+          ) =>
+            b.priceNGN -
+            a.priceNGN,
+        );
+        matchedGuides.sort(
           (
             a,
             b,
@@ -175,8 +259,12 @@ export default function BudgetFinder({
         );
       }
 
+      // 6. Combine results: In-stock inventory strictly goes first, market guides follow
       setResults(
-        matchedCars,
+        [
+          ...matchedInventory,
+          ...matchedGuides,
+        ],
       );
       setHasSearched(
         true,
@@ -195,24 +283,42 @@ export default function BudgetFinder({
 
   const handleWhatsAppInquiry =
     (
-      car,
+      item,
     ) => {
-      const isNumeric =
-        !isNaN(
+      let message =
+        "";
+
+      // Dynamic messaging based on whether it's available in inventory or just a guide
+      if (
+        item.isInventory
+      ) {
+        message = `Hello, I am interested in the ${item.year} ${item.make} ${item.model} currently in your inventory, priced at ₦${item.priceNGN.toLocaleString()}. Is this vehicle still available?`;
+      } else {
+        const isNumeric =
+          !isNaN(
+            Number(
+              searchQuery,
+            ),
+          ) &&
           Number(
             searchQuery,
-          ),
-        ) &&
-        Number(
-          searchQuery,
-        ) >
-          1000000;
-      const budgetContext =
-        isNumeric
-          ? ` with a budget around ₦${Number(searchQuery).toLocaleString()}`
-          : "";
-      const message = `Hello, I am interested in a ${car.yearStart}-${car.yearEnd} ${car.make} ${car.model}${budgetContext}.`;
-      const url = `https://wa.me/${dealerWhatsApp.replace(/\+/g, "")}?text=${encodeURIComponent(message)}`;
+          ) >
+            1000000;
+        const budgetContext =
+          isNumeric
+            ? ` with a budget around ₦${Number(searchQuery).toLocaleString()}`
+            : "";
+        message = `Hello, I am looking to source a ${item.yearStart}-${item.yearEnd} ${item.make} ${item.model}${budgetContext}. Can you help me find one?`;
+      }
+
+      // Strips out all non-digit characters (spaces, pluses, dashes) to ensure a valid wa.me link
+      const cleanPhone =
+        dealerWhatsApp.replace(
+          /\D/g,
+          "",
+        );
+      const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+
       window.open(
         url,
         "_blank",
@@ -316,88 +422,116 @@ export default function BudgetFinder({
             0 ? (
               results.map(
                 (
-                  car,
+                  item,
                   index,
-                ) => (
-                  <div
-                    key={
-                      index
-                    }
-                    className="flex gap-4 p-3 bg-white border border-slate-100 rounded-lg shadow-sm hover:shadow-md transition-shadow"
-                  >
-                    <div className="w-24 h-24 bg-slate-100 rounded-md overflow-hidden flex-shrink-0 relative">
-                      {car.imageUrl ? (
-                        <img
-                          src={
-                            car.imageUrl
-                          }
-                          alt={
-                            car.model
-                          }
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <Car
-                          size={
-                            24
-                          }
-                          className="opacity-30 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                        />
-                      )}
-                    </div>
-                    <div className="flex-grow flex flex-col justify-between">
-                      <div>
-                        <h4 className="text-sm font-bold text-slate-900">
-                          {
-                            car.make
-                          }{" "}
-                          {
-                            car.model
-                          }
-                        </h4>
-                        <p className="text-xs text-slate-500">
-                          {
-                            car.yearStart
-                          }
-                          -
-                          {
-                            car.yearEnd
-                          }{" "}
-                          |{" "}
-                          {car.category ||
-                            "Regular"}
-                        </p>
-                      </div>
-                      <div className="flex justify-between items-end mt-2">
-                        <p className="text-xs font-bold text-blue-700">
-                          ₦
-                          {(
-                            car.priceMinNGN /
-                            1000000
-                          ).toFixed(
-                            1,
-                          )}
-                          M+
-                        </p>
-                        <button
-                          onClick={() =>
-                            handleWhatsAppInquiry(
-                              car,
-                            )
-                          }
-                          className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1 transition-colors"
-                        >
-                          <MessageCircle
-                            size={
-                              14
+                ) => {
+                  // Determine image based on data structure
+                  const imageUrl =
+                    item.isInventory
+                      ? item.mainImage
+                      : item
+                          .images
+                          ?.front ||
+                        item.imageUrl;
+
+                  return (
+                    <div
+                      key={
+                        index
+                      }
+                      className={`flex gap-4 p-3 bg-white border rounded-lg transition-shadow hover:shadow-md ${
+                        item.isInventory
+                          ? "border-blue-200 shadow-sm"
+                          : "border-slate-100 shadow-sm"
+                      }`}
+                    >
+                      <div className="w-24 h-24 bg-slate-100 rounded-md overflow-hidden flex-shrink-0 relative">
+                        {imageUrl ? (
+                          <img
+                            src={
+                              imageUrl
                             }
-                          />{" "}
-                          DM
-                        </button>
+                            alt={
+                              item.model
+                            }
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Car
+                            size={
+                              24
+                            }
+                            className="opacity-30 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                          />
+                        )}
+                      </div>
+                      <div className="flex-grow flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-bold text-slate-900">
+                              {item.isInventory
+                                ? item.title ||
+                                  `${item.year} ${item.make} ${item.model}`
+                                : `${item.make} ${item.model}`}
+                            </h4>
+                            {item.isInventory && (
+                              <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                In
+                                Stock
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-500">
+                            {item.isInventory
+                              ? item.year
+                              : `${item.yearStart}-${item.yearEnd}`}{" "}
+                            |{" "}
+                            {item.category ||
+                              "Regular"}
+                          </p>
+                        </div>
+                        <div className="flex justify-between items-end mt-2">
+                          <p className="text-xs font-bold text-blue-700">
+                            ₦
+                            {item.isInventory
+                              ? (
+                                  item.priceNGN /
+                                  1000000
+                                ).toFixed(
+                                  1,
+                                )
+                              : (
+                                  item.priceMinNGN /
+                                  1000000
+                                ).toFixed(
+                                  1,
+                                )}
+
+                            M
+                            {item.isInventory
+                              ? ""
+                              : "+"}
+                          </p>
+                          <button
+                            onClick={() =>
+                              handleWhatsAppInquiry(
+                                item,
+                              )
+                            }
+                            className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1 transition-colors"
+                          >
+                            <MessageCircle
+                              size={
+                                14
+                              }
+                            />{" "}
+                            DM
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ),
+                  );
+                },
               )
             ) : (
               <div className="text-center py-8">
@@ -424,12 +558,19 @@ export default function BudgetFinder({
                   it.
                 </p>
                 <button
-                  onClick={() =>
+                  onClick={() => {
+                    const cleanPhone =
+                      dealerWhatsApp.replace(
+                        /\D/g,
+                        "",
+                      );
                     window.open(
-                      `https://wa.me/${dealerWhatsApp.replace(/\+/g, "")}?text=Hello, I need you to source a ${encodeURIComponent(searchQuery)}.`,
+                      `https://wa.me/${cleanPhone}?text=Hello, I need you to source a ${encodeURIComponent(
+                        searchQuery,
+                      )}.`,
                       "_blank",
-                    )
-                  }
+                    );
+                  }}
                   className="bg-slate-900 text-white px-4 py-2 rounded-md text-xs font-bold"
                 >
                   Request

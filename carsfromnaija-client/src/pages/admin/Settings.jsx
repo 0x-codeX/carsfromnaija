@@ -14,6 +14,139 @@ import {
 } from "lucide-react";
 import API from "../../api/axios";
 
+// Standard Nigerian market popular imports mapping
+const CAR_DATA =
+  {
+    Toyota:
+      [
+        "Camry",
+        "Corolla",
+        "Highlander",
+        "RAV4",
+        "Sienna",
+        "Tacoma",
+        "Tundra",
+        "4Runner",
+        "Avalon",
+        "Yaris",
+        "Venza",
+        "Land Cruiser",
+      ],
+    Honda:
+      [
+        "Accord",
+        "Civic",
+        "CR-V",
+        "Pilot",
+        "Odyssey",
+        "HR-V",
+        "Ridgeline",
+        "Fit",
+      ],
+    Lexus:
+      [
+        "RX 350",
+        "ES 350",
+        "IS 250",
+        "GX 460",
+        "LX 570",
+        "NX 200t",
+        "GS 350",
+      ],
+    "Mercedes-Benz":
+      [
+        "C-Class",
+        "E-Class",
+        "S-Class",
+        "GLE",
+        "GLC",
+        "GLA",
+        "G-Class",
+        "ML-Class",
+        "GLK",
+      ],
+    BMW: [
+      "3 Series",
+      "5 Series",
+      "X3",
+      "X5",
+      "X6",
+      "7 Series",
+    ],
+    Ford: [
+      "F-150",
+      "Mustang",
+      "Explorer",
+      "Escape",
+      "Edge",
+    ],
+    Chevrolet:
+      [
+        "Silverado",
+        "Malibu",
+        "Equinox",
+        "Tahoe",
+        "Suburban",
+        "Camaro",
+      ],
+    Nissan:
+      [
+        "Altima",
+        "Sentra",
+        "Rogue",
+        "Pathfinder",
+        "Maxima",
+        "Murano",
+      ],
+    Hyundai:
+      [
+        "Elantra",
+        "Sonata",
+        "Tucson",
+        "Santa Fe",
+        "Palisade",
+      ],
+    Kia: [
+      "Optima",
+      "Sorento",
+      "Sportage",
+      "Telluride",
+      "Forte",
+      "Rio",
+    ],
+    Land_Rover:
+      [
+        "Range Rover",
+        "Range Rover Sport",
+        "Range Rover Evoque",
+        "Discovery",
+      ],
+    Other:
+      [
+        "Other",
+      ],
+  };
+
+const MAKES =
+  Object.keys(
+    CAR_DATA,
+  );
+const currentYear =
+  new Date().getFullYear() +
+  1;
+const YEARS =
+  Array.from(
+    {
+      length: 30,
+    },
+    (
+      _,
+      i,
+    ) =>
+      currentYear -
+      i,
+  );
+
 export default function Settings() {
   const [
     settings,
@@ -47,12 +180,16 @@ export default function Settings() {
       false,
     );
   const [
-    uploadingIndex,
-    setUploadingIndex,
+    uploadingState,
+    setUploadingState,
   ] =
     useState(
-      null,
-    ); // Tracks which row is uploading
+      {
+        index:
+          null,
+        view: null,
+      },
+    );
 
   useEffect(() => {
     fetchSettings();
@@ -68,14 +205,32 @@ export default function Settings() {
         if (
           response.data
         ) {
+          const formattedGuides =
+            (
+              response
+                .data
+                .priceGuides ||
+              []
+            ).map(
+              (
+                guide,
+              ) => ({
+                ...guide,
+                images:
+                  guide.images || {
+                    front:
+                      "",
+                    back: "",
+                    interior:
+                      "",
+                  },
+              }),
+            );
           setSettings(
             {
               ...response.data,
               priceGuides:
-                response
-                  .data
-                  .priceGuides ||
-                [],
+                formattedGuides,
             },
           );
         }
@@ -120,10 +275,10 @@ export default function Settings() {
         settings
           .priceGuides
           .length >=
-        10
+        20
       ) {
         return alert(
-          "Maximum limit of 10 price guides reached.",
+          "Maximum limit of 20 price guides reached.",
         );
       }
       setSettings(
@@ -135,17 +290,23 @@ export default function Settings() {
             [
               ...prev.priceGuides,
               {
-                make: "",
+                make: "Toyota",
                 model:
-                  "",
-                yearStart: 2000,
-                yearEnd: 2005,
+                  "Camry",
+                yearStart: 2010,
+                yearEnd: 2015,
                 priceMinNGN:
                   "",
                 priceMaxNGN:
                   "",
-                imageUrl:
-                  "",
+                images:
+                  {
+                    front:
+                      "",
+                    back: "",
+                    interior:
+                      "",
+                  },
                 category:
                   "Regular",
               },
@@ -168,6 +329,51 @@ export default function Settings() {
         index
       ][
         field
+      ] =
+        value;
+
+      setSettings(
+        (
+          prev,
+        ) => ({
+          ...prev,
+          priceGuides:
+            updatedGuides,
+        }),
+      );
+    };
+
+  const handleUpdateImage =
+    (
+      index,
+      view,
+      value,
+    ) => {
+      const updatedGuides =
+        [
+          ...settings.priceGuides,
+        ];
+      if (
+        !updatedGuides[
+          index
+        ]
+          .images
+      ) {
+        updatedGuides[
+          index
+        ].images =
+          {
+            front:
+              "",
+            back: "",
+            interior:
+              "",
+          };
+      }
+      updatedGuides[
+        index
+      ].images[
+        view
       ] =
         value;
       setSettings(
@@ -205,10 +411,10 @@ export default function Settings() {
       );
     };
 
-  // --- NEW: Handle Instant Image Upload ---
   const handleImageUpload =
     async (
       index,
+      view,
       file,
     ) => {
       if (
@@ -216,8 +422,11 @@ export default function Settings() {
       )
         return;
 
-      setUploadingIndex(
-        index,
+      setUploadingState(
+        {
+          index,
+          view,
+        },
       );
       const formData =
         new FormData();
@@ -240,10 +449,9 @@ export default function Settings() {
             },
           );
 
-        // Instantly inject the returned Cloudinary URL into the input field
-        handleUpdateGuide(
+        handleUpdateImage(
           index,
-          "imageUrl",
+          view,
           res
             .data
             .url,
@@ -257,12 +465,15 @@ export default function Settings() {
           "Failed to upload image. Please try again or paste a URL directly.",
         );
       } finally {
-        setUploadingIndex(
-          null,
+        setUploadingState(
+          {
+            index:
+              null,
+            view: null,
+          },
         );
       }
     };
-  // ----------------------------------------
 
   const handleSubmit =
     async (
@@ -515,7 +726,7 @@ export default function Settings() {
                   .length
               }{" "}
               /
-              10
+              20
               Active
             </span>
           </div>
@@ -525,335 +736,578 @@ export default function Settings() {
               (
                 guide,
                 index,
-              ) => (
-                <div
-                  key={
-                    index
-                  }
-                  className="grid grid-cols-12 gap-4 p-5 bg-slate-50 border border-slate-200 rounded-xl relative shadow-sm"
-                >
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleRemoveGuide(
-                        index,
-                      )
+              ) => {
+                const availableModels =
+                  CAR_DATA[
+                    guide
+                      .make
+                  ] ||
+                  [];
+
+                // Determine if the Make is custom or explicitly set to 'Other'
+                const isOtherMake =
+                  guide.make ===
+                    "Other" ||
+                  guide.make ===
+                    "" ||
+                  !Object.keys(
+                    CAR_DATA,
+                  ).includes(
+                    guide.make,
+                  );
+
+                return (
+                  <div
+                    key={
+                      index
                     }
-                    className="absolute -top-3 -right-3 bg-red-100 text-red-600 hover:bg-red-600 hover:text-white p-1.5 rounded-full transition-colors shadow-sm"
+                    className="grid grid-cols-12 gap-4 p-5 bg-slate-50 border border-slate-200 rounded-xl relative shadow-sm"
                   >
-                    <Trash2
-                      size={
-                        16
-                      }
-                    />
-                  </button>
-
-                  <div className="col-span-12 md:col-span-3">
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Make
-                      &
-                      Model
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="Toyota"
-                        required
-                        value={
-                          guide.make
-                        }
-                        onChange={(
-                          e,
-                        ) =>
-                          handleUpdateGuide(
-                            index,
-                            "make",
-                            e
-                              .target
-                              .value,
-                          )
-                        }
-                        className="w-1/2 bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Camry"
-                        required
-                        value={
-                          guide.model
-                        }
-                        onChange={(
-                          e,
-                        ) =>
-                          handleUpdateGuide(
-                            index,
-                            "model",
-                            e
-                              .target
-                              .value,
-                          )
-                        }
-                        className="w-1/2 bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="col-span-12 md:col-span-2">
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Year
-                      Range
-                    </label>
-                    <div className="flex items-center gap-1">
-                      <input
-                        type="number"
-                        required
-                        value={
-                          guide.yearStart
-                        }
-                        onChange={(
-                          e,
-                        ) =>
-                          handleUpdateGuide(
-                            index,
-                            "yearStart",
-                            Number(
-                              e
-                                .target
-                                .value,
-                            ),
-                          )
-                        }
-                        className="w-full bg-white border border-slate-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500 text-center"
-                      />
-                      <span className="text-slate-400">
-                        -
-                      </span>
-                      <input
-                        type="number"
-                        required
-                        value={
-                          guide.yearEnd
-                        }
-                        onChange={(
-                          e,
-                        ) =>
-                          handleUpdateGuide(
-                            index,
-                            "yearEnd",
-                            Number(
-                              e
-                                .target
-                                .value,
-                            ),
-                          )
-                        }
-                        className="w-full bg-white border border-slate-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500 text-center"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="col-span-12 md:col-span-4">
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Price
-                      Range
-                      (NGN)
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        placeholder="Min"
-                        required
-                        value={
-                          guide.priceMinNGN
-                        }
-                        onChange={(
-                          e,
-                        ) =>
-                          handleUpdateGuide(
-                            index,
-                            "priceMinNGN",
-                            Number(
-                              e
-                                .target
-                                .value,
-                            ),
-                          )
-                        }
-                        className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500"
-                      />
-                      <span className="text-slate-400">
-                        to
-                      </span>
-                      <input
-                        type="number"
-                        placeholder="Max"
-                        required
-                        value={
-                          guide.priceMaxNGN
-                        }
-                        onChange={(
-                          e,
-                        ) =>
-                          handleUpdateGuide(
-                            index,
-                            "priceMaxNGN",
-                            Number(
-                              e
-                                .target
-                                .value,
-                            ),
-                          )
-                        }
-                        className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="col-span-12 md:col-span-3">
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Category
-                    </label>
-                    <select
-                      value={
-                        guide.category
-                      }
-                      onChange={(
-                        e,
-                      ) =>
-                        handleUpdateGuide(
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleRemoveGuide(
                           index,
-                          "category",
-                          e
-                            .target
-                            .value,
                         )
                       }
-                      className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                      className="absolute -top-3 -right-3 bg-red-100 text-red-600 hover:bg-red-600 hover:text-white p-1.5 rounded-full transition-colors shadow-sm"
                     >
-                      <option value="Regular">
-                        Regular
-                      </option>
-                      <option value="Hybrid">
-                        Hybrid
-                      </option>
-                      <option value="Electric">
-                        Electric
-                      </option>
-                      <option value="Luxury">
-                        Luxury
-                      </option>
-                      <option value="Exotic">
-                        Exotic
-                      </option>
-                    </select>
-                  </div>
+                      <Trash2
+                        size={
+                          16
+                        }
+                      />
+                    </button>
 
-                  {/* Hybrid File Upload / URL Input */}
-                  <div className="col-span-12 flex gap-4 items-end mt-2 pt-4 border-t border-slate-200">
-                    <div className="flex-grow">
-                      <label className="flex items-center gap-1 text-xs font-semibold text-slate-700 mb-1">
-                        <ImageIcon
-                          size={
-                            14
-                          }
-                          className="text-slate-500"
-                        />
-                        Image
-                        URL
-                        or
-                        Direct
-                        Upload
+                    <div className="col-span-12 md:col-span-3">
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        Make
+                        &
+                        Model
                       </label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="url"
-                          placeholder="https://example.com/image.jpg"
+                      <div className="flex flex-col gap-2">
+                        <div className="flex gap-2">
+                          <select
+                            required
+                            value={
+                              isOtherMake
+                                ? "Other"
+                                : guide.make
+                            }
+                            onChange={(
+                              e,
+                            ) => {
+                              const val =
+                                e
+                                  .target
+                                  .value;
+                              if (
+                                val ===
+                                "Other"
+                              ) {
+                                // User wants to type a custom make
+                                handleUpdateGuide(
+                                  index,
+                                  "make",
+                                  "",
+                                );
+                                handleUpdateGuide(
+                                  index,
+                                  "model",
+                                  "",
+                                );
+                              } else {
+                                // User selected a known make, assign it and default its first model
+                                handleUpdateGuide(
+                                  index,
+                                  "make",
+                                  val,
+                                );
+                                const models =
+                                  CAR_DATA[
+                                    val
+                                  ] ||
+                                  [];
+                                handleUpdateGuide(
+                                  index,
+                                  "model",
+                                  models[0] ||
+                                    "",
+                                );
+                              }
+                            }}
+                            className={`bg-white border border-slate-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500 ${isOtherMake ? "w-full" : "w-1/2"}`}
+                          >
+                            <option
+                              value=""
+                              disabled
+                            >
+                              Select
+                              Make
+                            </option>
+                            {MAKES.map(
+                              (
+                                make,
+                              ) => (
+                                <option
+                                  key={
+                                    make
+                                  }
+                                  value={
+                                    make
+                                  }
+                                >
+                                  {make.replace(
+                                    "_",
+                                    " ",
+                                  )}
+                                </option>
+                              ),
+                            )}
+                          </select>
+
+                          {!isOtherMake && (
+                            <select
+                              required
+                              value={
+                                guide.model
+                              }
+                              onChange={(
+                                e,
+                              ) =>
+                                handleUpdateGuide(
+                                  index,
+                                  "model",
+                                  e
+                                    .target
+                                    .value,
+                                )
+                              }
+                              className="w-1/2 bg-white border border-slate-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                            >
+                              <option
+                                value=""
+                                disabled
+                              >
+                                Select
+                                Model
+                              </option>
+                              {availableModels.map(
+                                (
+                                  model,
+                                ) => (
+                                  <option
+                                    key={
+                                      model
+                                    }
+                                    value={
+                                      model
+                                    }
+                                  >
+                                    {
+                                      model
+                                    }
+                                  </option>
+                                ),
+                              )}
+                            </select>
+                          )}
+                        </div>
+
+                        {/* Display text inputs if 'Other' is selected */}
+                        {isOtherMake && (
+                          <div className="flex gap-2 animate-in fade-in slide-in-from-top-2">
+                            <input
+                              type="text"
+                              placeholder="Enter Make"
+                              required
+                              value={
+                                guide.make ===
+                                "Other"
+                                  ? ""
+                                  : guide.make
+                              }
+                              onChange={(
+                                e,
+                              ) =>
+                                handleUpdateGuide(
+                                  index,
+                                  "make",
+                                  e
+                                    .target
+                                    .value,
+                                )
+                              }
+                              className="w-1/2 bg-white border border-slate-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Enter Model"
+                              required
+                              value={
+                                guide.model ===
+                                "Other"
+                                  ? ""
+                                  : guide.model
+                              }
+                              onChange={(
+                                e,
+                              ) =>
+                                handleUpdateGuide(
+                                  index,
+                                  "model",
+                                  e
+                                    .target
+                                    .value,
+                                )
+                              }
+                              className="w-1/2 bg-white border border-slate-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="col-span-12 md:col-span-2">
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        Year
+                        Range
+                      </label>
+                      <div className="flex items-center gap-1 h-8">
+                        <select
                           required
                           value={
-                            guide.imageUrl
+                            guide.yearStart
                           }
                           onChange={(
                             e,
                           ) =>
                             handleUpdateGuide(
                               index,
-                              "imageUrl",
-                              e
-                                .target
-                                .value,
-                            )
-                          }
-                          className="flex-grow bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500"
-                        />
-                        <span className="text-xs font-bold text-slate-400">
-                          OR
-                        </span>
-                        <label
-                          className={`cursor-pointer px-4 py-1.5 rounded-md text-xs font-bold transition-colors flex items-center gap-1 ${uploadingIndex === index ? "bg-slate-300 text-slate-500" : "bg-slate-200 hover:bg-slate-300 text-slate-700"}`}
-                        >
-                          <UploadCloud
-                            size={
-                              14
-                            }
-                          />
-                          {uploadingIndex ===
-                          index
-                            ? "Uploading..."
-                            : "Upload File"}
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            disabled={
-                              uploadingIndex ===
-                              index
-                            }
-                            onChange={(
-                              e,
-                            ) =>
-                              handleImageUpload(
-                                index,
+                              "yearStart",
+                              Number(
                                 e
                                   .target
-                                  .files[0],
-                              )
-                            }
-                          />
-                        </label>
+                                  .value,
+                              ),
+                            )
+                          }
+                          className="w-full bg-white border border-slate-300 rounded-md px-1 py-1 text-sm focus:outline-none focus:border-blue-500 text-center h-full"
+                        >
+                          {YEARS.map(
+                            (
+                              year,
+                            ) => (
+                              <option
+                                key={
+                                  year
+                                }
+                                value={
+                                  year
+                                }
+                              >
+                                {
+                                  year
+                                }
+                              </option>
+                            ),
+                          )}
+                        </select>
+                        <span className="text-slate-400">
+                          -
+                        </span>
+                        <select
+                          required
+                          value={
+                            guide.yearEnd
+                          }
+                          onChange={(
+                            e,
+                          ) =>
+                            handleUpdateGuide(
+                              index,
+                              "yearEnd",
+                              Number(
+                                e
+                                  .target
+                                  .value,
+                              ),
+                            )
+                          }
+                          className="w-full bg-white border border-slate-300 rounded-md px-1 py-1 text-sm focus:outline-none focus:border-blue-500 text-center h-full"
+                        >
+                          {YEARS.map(
+                            (
+                              year,
+                            ) => (
+                              <option
+                                key={
+                                  year
+                                }
+                                value={
+                                  year
+                                }
+                              >
+                                {
+                                  year
+                                }
+                              </option>
+                            ),
+                          )}
+                        </select>
                       </div>
                     </div>
 
-                    <div className="w-16 h-12 flex-shrink-0 bg-slate-200 rounded-md border border-slate-300 overflow-hidden flex items-center justify-center">
-                      {guide.imageUrl ? (
-                        <img
-                          src={
-                            guide.imageUrl
+                    <div className="col-span-12 md:col-span-4">
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        Price
+                        Range
+                        (NGN)
+                      </label>
+                      <div className="flex items-center gap-2 h-8">
+                        <input
+                          type="number"
+                          placeholder="Min"
+                          required
+                          value={
+                            guide.priceMinNGN
                           }
-                          alt="Preview"
-                          className="w-full h-full object-cover"
-                          onError={(
+                          onChange={(
                             e,
                           ) =>
-                            (e.target.src =
-                              "https://via.placeholder.com/150?text=Invalid+URL")
+                            handleUpdateGuide(
+                              index,
+                              "priceMinNGN",
+                              Number(
+                                e
+                                  .target
+                                  .value,
+                              ),
+                            )
                           }
+                          className="w-full bg-white border border-slate-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:border-blue-500 h-full"
                         />
-                      ) : (
-                        <span className="text-[10px] text-slate-400 font-semibold uppercase">
-                          No
-                          Image
+                        <span className="text-slate-400">
+                          to
                         </span>
-                      )}
+                        <input
+                          type="number"
+                          placeholder="Max"
+                          required
+                          value={
+                            guide.priceMaxNGN
+                          }
+                          onChange={(
+                            e,
+                          ) =>
+                            handleUpdateGuide(
+                              index,
+                              "priceMaxNGN",
+                              Number(
+                                e
+                                  .target
+                                  .value,
+                              ),
+                            )
+                          }
+                          className="w-full bg-white border border-slate-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:border-blue-500 h-full"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="col-span-12 md:col-span-3">
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        Category
+                      </label>
+                      <select
+                        value={
+                          guide.category
+                        }
+                        onChange={(
+                          e,
+                        ) =>
+                          handleUpdateGuide(
+                            index,
+                            "category",
+                            e
+                              .target
+                              .value,
+                          )
+                        }
+                        className="w-full h-8 bg-white border border-slate-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:border-blue-500"
+                      >
+                        <option value="Regular">
+                          Regular
+                        </option>
+                        <option value="Hybrid">
+                          Hybrid
+                        </option>
+                        <option value="Electric">
+                          Electric
+                        </option>
+                        <option value="Luxury">
+                          Luxury
+                        </option>
+                        <option value="Exotic">
+                          Exotic
+                        </option>
+                      </select>
+                    </div>
+
+                    {/* 3 Images File Upload / URL Input */}
+                    <div className="col-span-12 mt-2 pt-4 border-t border-slate-200">
+                      <label className="block text-xs font-semibold text-slate-700 mb-3">
+                        Vehicle
+                        Images
+                        (Required
+                        for
+                        Guide)
+                      </label>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {[
+                          {
+                            key: "front",
+                            label:
+                              "Front view",
+                          },
+                          {
+                            key: "back",
+                            label:
+                              "backview",
+                          },
+                          {
+                            key: "interior",
+                            label:
+                              "interior",
+                          },
+                        ].map(
+                          (
+                            view,
+                          ) => {
+                            const imageUrl =
+                              guide
+                                .images?.[
+                                view
+                                  .key
+                              ] ||
+                              "";
+                            const isUploading =
+                              uploadingState.index ===
+                                index &&
+                              uploadingState.view ===
+                                view.key;
+
+                            return (
+                              <div
+                                key={
+                                  view.key
+                                }
+                                className="space-y-2"
+                              >
+                                <label className="flex items-center gap-1 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                                  <ImageIcon
+                                    size={
+                                      12
+                                    }
+                                  />{" "}
+                                  {
+                                    view.label
+                                  }
+                                </label>
+                                <div className="flex flex-col gap-2">
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="url"
+                                      placeholder="https://..."
+                                      value={
+                                        imageUrl
+                                      }
+                                      onChange={(
+                                        e,
+                                      ) =>
+                                        handleUpdateImage(
+                                          index,
+                                          view.key,
+                                          e
+                                            .target
+                                            .value,
+                                        )
+                                      }
+                                      className="flex-grow bg-white border border-slate-300 rounded-md px-2 py-1.5 text-xs focus:outline-none focus:border-blue-500"
+                                    />
+                                    <label
+                                      className={`cursor-pointer px-2 py-1.5 rounded-md text-xs font-bold transition-colors flex items-center justify-center ${
+                                        isUploading
+                                          ? "bg-slate-300 text-slate-500"
+                                          : "bg-slate-200 hover:bg-slate-300 text-slate-700"
+                                      }`}
+                                    >
+                                      <UploadCloud
+                                        size={
+                                          14
+                                        }
+                                      />
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        disabled={
+                                          isUploading
+                                        }
+                                        onChange={(
+                                          e,
+                                        ) =>
+                                          handleImageUpload(
+                                            index,
+                                            view.key,
+                                            e
+                                              .target
+                                              .files[0],
+                                          )
+                                        }
+                                      />
+                                    </label>
+                                  </div>
+                                  <div className="w-full h-24 bg-slate-200 rounded-md border border-slate-300 overflow-hidden flex items-center justify-center">
+                                    {imageUrl ? (
+                                      <img
+                                        src={
+                                          imageUrl
+                                        }
+                                        alt={
+                                          view.label
+                                        }
+                                        className="w-full h-full object-cover"
+                                        onError={(
+                                          e,
+                                        ) =>
+                                          (e.target.src =
+                                            "https://via.placeholder.com/150?text=Invalid+URL")
+                                        }
+                                      />
+                                    ) : (
+                                      <span className="text-[10px] text-slate-400 font-semibold uppercase">
+                                        No
+                                        Image
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          },
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ),
+                );
+              },
             )}
 
             {settings
               .priceGuides
               .length <
-              10 && (
+              20 && (
               <button
                 type="button"
                 onClick={
@@ -880,7 +1334,7 @@ export default function Settings() {
             type="submit"
             disabled={
               saving ||
-              uploadingIndex !==
+              uploadingState.index !==
                 null
             }
             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-bold flex items-center gap-2 transition-colors shadow-md disabled:bg-blue-300"

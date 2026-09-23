@@ -60,11 +60,26 @@ const settingSchema =
                 type: Number,
                 required: true,
               },
-            imageUrl:
+            images:
               {
-                type: String,
-                required: true,
-              }, // NEW: Direct link to CDN image
+                front:
+                  {
+                    type: String,
+                    default:
+                      "",
+                  },
+                back: {
+                  type: String,
+                  default:
+                    "",
+                },
+                interior:
+                  {
+                    type: String,
+                    default:
+                      "",
+                  },
+              },
             category:
               {
                 type: String,
@@ -74,7 +89,7 @@ const settingSchema =
                   "Electric",
                   "Luxury",
                   "Exotic",
-                ], // UPDATED
+                ],
                 default:
                   "Regular",
               },

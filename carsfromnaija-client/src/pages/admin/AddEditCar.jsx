@@ -15,6 +15,7 @@ import {
 import API from "../../api/axios";
 
 const DEFAULT_FX_RATE = 1550;
+const MAX_IMAGES = 10;
 
 const TOP_MAKES =
   [
@@ -479,6 +480,172 @@ export default function AddEditCar() {
       );
     };
 
+  const handleImageChange =
+    (
+      e,
+    ) => {
+      const selectedFiles =
+        Array.from(
+          e
+            .target
+            .files ||
+            [],
+        );
+
+      if (
+        selectedFiles.length ===
+        0
+      ) {
+        return;
+      }
+
+      const remainingSlots =
+        MAX_IMAGES -
+        imageFiles.length;
+
+      if (
+        remainingSlots <=
+        0
+      ) {
+        alert(
+          `You can upload a maximum of ${MAX_IMAGES} images.`,
+        );
+        e.target.value =
+          "";
+        return;
+      }
+
+      const validFiles =
+        selectedFiles.filter(
+          (
+            file,
+          ) =>
+            file.type.startsWith(
+              "image/",
+            ),
+        );
+
+      const filesToAdd =
+        validFiles.slice(
+          0,
+          remainingSlots,
+        );
+
+      if (
+        validFiles.length >
+        remainingSlots
+      ) {
+        alert(
+          `Only ${MAX_IMAGES} images are allowed. The first ${remainingSlots} additional image(s) were added.`,
+        );
+      }
+
+      if (
+        filesToAdd.length ===
+        0
+      ) {
+        e.target.value =
+          "";
+        return;
+      }
+
+      setImageFiles(
+        (
+          prev,
+        ) => [
+          ...prev,
+          ...filesToAdd,
+        ],
+      );
+
+      setImagePreviews(
+        (
+          prev,
+        ) => [
+          ...prev,
+          ...filesToAdd.map(
+            (
+              file,
+            ) =>
+              URL.createObjectURL(
+                file,
+              ),
+          ),
+        ],
+      );
+
+      e.target.value =
+        "";
+    };
+
+  const removeImage =
+    (
+      index,
+    ) => {
+      setImagePreviews(
+        (
+          prev,
+        ) => {
+          if (
+            prev[
+              index
+            ]
+          ) {
+            URL.revokeObjectURL(
+              prev[
+                index
+              ],
+            );
+          }
+          return prev.filter(
+            (
+              _,
+              i,
+            ) =>
+              i !==
+              index,
+          );
+        },
+      );
+
+      setImageFiles(
+        (
+          prev,
+        ) =>
+          prev.filter(
+            (
+              _,
+              i,
+            ) =>
+              i !==
+              index,
+          ),
+      );
+
+      setMainImageIndex(
+        (
+          prev,
+        ) => {
+          if (
+            index ===
+            prev
+          ) {
+            return 0;
+          }
+          if (
+            index <
+            prev
+          ) {
+            return (
+              prev -
+              1
+            );
+          }
+          return prev;
+        },
+      );
+    };
+
   const handleSubmit =
     async (
       e,
@@ -565,7 +732,14 @@ export default function AddEditCar() {
         ) {
           await API.put(
             `/cars/${id}`,
-            formData,
+            submitData,
+            {
+              headers:
+                {
+                  "Content-Type":
+                    "multipart/form-data",
+                },
+            },
           );
           alert(
             "Vehicle listing updated successfully!",
@@ -602,6 +776,42 @@ export default function AddEditCar() {
           false,
         );
       }
+    };
+
+  const handleVideoChange =
+    (
+      e,
+    ) => {
+      const file =
+        e
+          .target
+          .files[0];
+      if (
+        !file
+      )
+        return;
+
+      // Hard constraint: Reject files over 15MB to protect server RAM and bandwidth
+      if (
+        file.size >
+        15 *
+          1024 *
+          1024
+      ) {
+        alert(
+          "Video is too large. Please compress it to under 15MB.",
+        );
+        return;
+      }
+
+      setVideoFile(
+        file,
+      );
+      setVideoPreview(
+        URL.createObjectURL(
+          file,
+        ),
+      );
     };
 
   const availableModels =
@@ -1032,6 +1242,377 @@ export default function AddEditCar() {
               />
             </div>
           </div>
+
+          {/* Vehicle Specifications Section */}
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
+              Vehicle
+              Specifications
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Mileage
+                  (km
+                  or
+                  miles)
+                </label>
+                <input
+                  type="number"
+                  placeholder="e.g. 45000"
+                  required
+                  value={
+                    formData
+                      .specs
+                      .mileage
+                  }
+                  onChange={(
+                    e,
+                  ) =>
+                    setFormData(
+                      {
+                        ...formData,
+                        specs:
+                          {
+                            ...formData.specs,
+                            mileage:
+                              e
+                                .target
+                                .value,
+                          },
+                      },
+                    )
+                  }
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Engine
+                  Type
+                </label>
+                <select
+                  required
+                  value={
+                    formData
+                      .specs
+                      .engineType
+                  }
+                  onChange={(
+                    e,
+                  ) =>
+                    setFormData(
+                      {
+                        ...formData,
+                        specs:
+                          {
+                            ...formData.specs,
+                            engineType:
+                              e
+                                .target
+                                .value,
+                          },
+                      },
+                    )
+                  }
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                >
+                  <option value="">
+                    Select
+                    Engine
+                    Type...
+                  </option>
+                  <option value="Petrol">
+                    Petrol
+                  </option>
+                  <option value="Diesel">
+                    Diesel
+                  </option>
+                  <option value="Hybrid">
+                    Hybrid
+                  </option>
+                  <option value="Electric">
+                    Electric
+                  </option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Transmission
+                </label>
+                <select
+                  required
+                  value={
+                    formData
+                      .specs
+                      .transmission
+                  }
+                  onChange={(
+                    e,
+                  ) =>
+                    setFormData(
+                      {
+                        ...formData,
+                        specs:
+                          {
+                            ...formData.specs,
+                            transmission:
+                              e
+                                .target
+                                .value,
+                          },
+                      },
+                    )
+                  }
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                >
+                  <option value="Automatic">
+                    Automatic
+                  </option>
+                  <option value="Manual">
+                    Manual
+                  </option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Color
+                  (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Midnight Black"
+                  value={
+                    formData
+                      .specs
+                      .color
+                  }
+                  onChange={(
+                    e,
+                  ) =>
+                    setFormData(
+                      {
+                        ...formData,
+                        specs:
+                          {
+                            ...formData.specs,
+                            color:
+                              e
+                                .target
+                                .value,
+                          },
+                      },
+                    )
+                  }
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  VIN
+                  (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 1HGCR2F..."
+                  value={
+                    formData
+                      .specs
+                      .vin
+                  }
+                  onChange={(
+                    e,
+                  ) =>
+                    setFormData(
+                      {
+                        ...formData,
+                        specs:
+                          {
+                            ...formData.specs,
+                            vin: e
+                              .target
+                              .value,
+                          },
+                      },
+                    )
+                  }
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Section 5: Image Upload */}
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+            <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
+              Vehicle
+              Images
+            </h2>
+
+            <div className="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-2xl p-8 text-center bg-slate-50 transition-colors cursor-pointer relative">
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={
+                  handleImageChange
+                }
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <Upload
+                size={
+                  32
+                }
+                className="mx-auto text-slate-400 mb-2"
+              />
+              <p className="text-sm font-bold text-slate-700">
+                Click
+                or
+                Drag
+                &
+                Drop
+                Images
+                Here
+              </p>
+              <p className="text-xs text-slate-400 mt-1">
+                Supports
+                PNG,
+                JPG,
+                or
+                WEBP
+                (Max
+                5MB
+                per
+                file)
+              </p>
+              <p className="text-xs font-semibold text-blue-600 mt-1">
+                Maximum{" "}
+                {
+                  MAX_IMAGES
+                }{" "}
+                images
+                total
+                •
+                First
+                image
+                is
+                the
+                main
+                image
+                by
+                default
+              </p>
+            </div>
+
+            {/* Image Previews Grid */}
+            {imagePreviews.length >
+              0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4 pt-4">
+                {imagePreviews.map(
+                  (
+                    src,
+                    idx,
+                  ) => (
+                    <div
+                      key={
+                        idx
+                      }
+                      className="relative h-28 rounded-xl overflow-hidden border border-slate-200 group"
+                    >
+                      <img
+                        src={
+                          src
+                        }
+                        alt="preview"
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setMainImageIndex(
+                            idx,
+                          )
+                        }
+                        className={`absolute bottom-1 left-1 px-2 py-1 rounded-md text-[10px] font-bold ${
+                          mainImageIndex ===
+                          idx
+                            ? "bg-blue-600 text-white"
+                            : "bg-white/90 text-slate-700"
+                        }`}
+                      >
+                        {mainImageIndex ===
+                        idx
+                          ? "Main Image"
+                          : "Set as Main"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          removeImage(
+                            idx,
+                          )
+                        }
+                        className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded-full opacity-90 hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2
+                          size={
+                            14
+                          }
+                        />
+                      </button>
+                    </div>
+                  ),
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Video Upload Section */}
+          <div className="mt-6 border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-2xl p-8 text-center bg-slate-50 transition-colors cursor-pointer relative">
+            <input
+              type="file"
+              accept="video/mp4,video/webm"
+              onChange={
+                handleVideoChange
+              }
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            <Upload
+              size={
+                32
+              }
+              className="mx-auto text-slate-400 mb-2"
+            />
+            <p className="text-sm font-bold text-slate-700">
+              Upload
+              Walkaround
+              Video
+              (Max
+              45s)
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              Supports
+              MP4,
+              WebM
+              (Max
+              15MB)
+            </p>
+          </div>
+          {videoPreview && (
+            <div className="mt-4 rounded-xl overflow-hidden border border-slate-200">
+              <video
+                src={
+                  videoPreview
+                }
+                controls
+                className="w-full h-48 object-cover bg-black"
+              />
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end gap-4">
