@@ -655,7 +655,7 @@ export default function Inventory() {
                 onClick={
                   handleResetFilters
                 }
-                className="text-xs font-semibold text-blue-600 hover:underline"
+                className="text-xs font-semibold text-purple-600 hover:underline"
               >
                 Reset
               </button>
@@ -674,7 +674,7 @@ export default function Inventory() {
                 onChange={
                   handleMakeChange
                 }
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-purple-500"
               >
                 <option value="">
                   All
@@ -759,7 +759,7 @@ export default function Inventory() {
                           .value,
                       )
                     }
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-purple-500"
                   />
                 </div>
                 <div>
@@ -782,7 +782,7 @@ export default function Inventory() {
                           .value,
                       )
                     }
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-purple-500"
                   />
                 </div>
               </>
@@ -807,7 +807,7 @@ export default function Inventory() {
                   disabled={
                     !selectedMake
                   }
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 disabled:bg-slate-100 disabled:text-slate-400"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-purple-500 disabled:bg-slate-100 disabled:text-slate-400"
                 >
                   <option value="">
                     {selectedMake
@@ -853,7 +853,7 @@ export default function Inventory() {
                       .value,
                   )
                 }
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-purple-500"
               >
                 <option value="">
                   All
@@ -901,13 +901,13 @@ export default function Inventory() {
                       .value,
                   )
                 }
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-purple-500"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full bg-blue-600 text-white py-3 rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm"
+              className="w-full bg-purple-600 text-white py-3 rounded-lg text-sm font-bold hover:bg-purple-700 transition-colors shadow-sm"
             >
               Apply
               Filters
@@ -922,7 +922,7 @@ export default function Inventory() {
             Available
             Vehicles
           </h1>
-          <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full">
+          <span className="bg-purple-100 text-purple-800 text-xs font-bold px-3 py-1 rounded-full">
             {
               filteredCars.length
             }{" "}

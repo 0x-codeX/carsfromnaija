@@ -7,7 +7,7 @@ import {
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-900 text-white pt-8 pb-4 mt-auto border-t border-slate-800">
+    <footer className="bg-purple-950 text-white pt-8 pb-4 mt-auto border-t border-purple-900">
       <div className="w-full px-6 md:px-12 max-w-[1920px] mx-auto flex flex-col md:flex-row justify-between items-center">
         {/* Brand Copyright */}
         <div className="mb-4 md:mb-0 text-center md:text-left text-gray-400">
@@ -29,7 +29,7 @@ export default function Footer() {
             href="https://www.facebook.com/share/1AXrvqLEUH/"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-gray-400 hover:text-blue-500 transition-colors duration-300"
+            className="text-gray-400 hover:text-purple-500 transition-colors duration-300"
             aria-label="Facebook"
           >
             <FaFacebook

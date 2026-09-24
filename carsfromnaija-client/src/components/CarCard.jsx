@@ -54,7 +54,7 @@ export default function CarCard({
           )}
           {car.isNegotiable &&
             !isSold && (
-              <span className="bg-blue-600 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+              <span className="bg-purple-600 text-white text-xs font-semibold px-2.5 py-1 rounded-full">
                 Negotiable
               </span>
             )}
@@ -69,7 +69,7 @@ export default function CarCard({
               car.title
             }
           </h3>
-          <p className="text-2xl font-black text-blue-600 mt-1">
+          <p className="text-2xl font-black text-purple-600 mt-1">
             ₦
             {(isSold &&
             car.soldPriceNGN

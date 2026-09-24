@@ -19,8 +19,8 @@ export default function CostCalculator({
     shippingAndClearingCost;
 
   return (
-    <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-lg space-y-4">
-      <h3 className="text-lg font-bold text-blue-400">
+    <div className="bg-purple-950 text-white p-6 rounded-2xl shadow-lg space-y-4 border border-purple-900">
+      <h3 className="text-lg font-bold text-purple-400">
         Cost
         Breakdown
       </h3>
@@ -60,7 +60,19 @@ export default function CostCalculator({
       </div>
       <p className="text-xs text-slate-500 italic leading-relaxed mt-4">
         *
-        Note that price could differ slightly please contact us for the exact price.
+        Note
+        that
+        price
+        could
+        differ
+        slightly
+        please
+        contact
+        us
+        for
+        the
+        exact
+        price.
       </p>
     </div>
   );

@@ -295,10 +295,8 @@ export default function Settings() {
                   "Camry",
                 yearStart: 2010,
                 yearEnd: 2015,
-                priceMinNGN:
-                  "",
-                priceMaxNGN:
-                  "",
+                priceMinNGN: 0,
+                priceMaxNGN: 0,
                 images:
                   {
                     front:
@@ -325,12 +323,29 @@ export default function Settings() {
         [
           ...settings.priceGuides,
         ];
+      const numericFields =
+        [
+          "yearStart",
+          "yearEnd",
+          "priceMinNGN",
+          "priceMaxNGN",
+        ];
+
       updatedGuides[
         index
       ][
         field
       ] =
-        value;
+        numericFields.includes(
+          field,
+        )
+          ? value ===
+            ""
+            ? ""
+            : Number(
+                value,
+              )
+          : value;
 
       setSettings(
         (
@@ -483,10 +498,45 @@ export default function Settings() {
       setSaving(
         true,
       );
+
+      // Format numeric values before payload dispatch
+      const payload =
+        {
+          ...settings,
+          priceGuides:
+            settings.priceGuides.map(
+              (
+                guide,
+              ) => ({
+                ...guide,
+                priceMinNGN:
+                  Number(
+                    guide.priceMinNGN,
+                  ) ||
+                  0,
+                priceMaxNGN:
+                  Number(
+                    guide.priceMaxNGN,
+                  ) ||
+                  0,
+                yearStart:
+                  Number(
+                    guide.yearStart,
+                  ) ||
+                  2010,
+                yearEnd:
+                  Number(
+                    guide.yearEnd,
+                  ) ||
+                  2015,
+              }),
+            ),
+        };
+
       try {
         await API.put(
           "/settings",
-          settings,
+          payload,
         );
         alert(
           "Global configuration and Price Guides updated successfully!",

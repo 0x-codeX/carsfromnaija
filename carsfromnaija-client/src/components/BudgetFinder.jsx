@@ -2,6 +2,7 @@ import {
   useState,
   useEffect,
 } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   MessageCircle,
@@ -15,6 +16,9 @@ export default function BudgetFinder({
   inventory = [],
   dealerWhatsApp = "2348059975887",
 }) {
+  const navigate =
+    useNavigate();
+
   const [
     searchQuery,
     setSearchQuery,
@@ -374,13 +378,13 @@ export default function BudgetFinder({
               placeholder={
                 placeholder
               }
-              className="w-full pl-10 pr-4 py-3 rounded-lg bg-white/90 text-slate-900 border-none focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all placeholder:text-slate-500 font-medium text-sm"
+              className="w-full pl-10 pr-4 py-3 rounded-lg bg-white/90 text-slate-900 border-none focus:ring-2 focus:ring-purple-500 focus:outline-none transition-all placeholder:text-slate-500 font-medium text-sm"
               required
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors text-sm shadow-lg"
+            className="w-full bg-purple-600 hover:bg-purple-500 text-white py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors text-sm shadow-lg"
           >
             Find
             Vehicles
@@ -400,6 +404,7 @@ export default function BudgetFinder({
               {
                 searchQuery
               }
+
               "
             </h3>
             <button
@@ -439,9 +444,25 @@ export default function BudgetFinder({
                       key={
                         index
                       }
-                      className={`flex gap-4 p-3 bg-white border rounded-lg transition-shadow hover:shadow-md ${
+                      onClick={() => {
+                        closeResults(); // Closes the search dropdown
+                        if (
+                          item.isInventory
+                        ) {
+                          // Navigates to the specific car details page
+                          navigate(
+                            `/cars/${item._id}`,
+                          );
+                        } else {
+                          // Navigates to the market guide page
+                          navigate(
+                            `/market-price-guide`,
+                          );
+                        }
+                      }}
+                      className={`flex gap-4 p-3 bg-white border rounded-lg transition-shadow hover:shadow-md cursor-pointer ${
                         item.isInventory
-                          ? "border-blue-200 shadow-sm"
+                          ? "border-purple-200 shadow-sm"
                           : "border-slate-100 shadow-sm"
                       }`}
                     >
@@ -475,7 +496,7 @@ export default function BudgetFinder({
                                 : `${item.make} ${item.model}`}
                             </h4>
                             {item.isInventory && (
-                              <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                              <span className="bg-purple-100 text-purple-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
                                 In
                                 Stock
                               </span>
@@ -491,7 +512,7 @@ export default function BudgetFinder({
                           </p>
                         </div>
                         <div className="flex justify-between items-end mt-2">
-                          <p className="text-xs font-bold text-blue-700">
+                          <p className="text-xs font-bold text-purple-600">
                             ₦
                             {item.isInventory
                               ? (
@@ -513,12 +534,15 @@ export default function BudgetFinder({
                               : "+"}
                           </p>
                           <button
-                            onClick={() =>
+                            onClick={(
+                              e,
+                            ) => {
+                              e.stopPropagation(); // Prevents the card's onClick from firing when clicking the button
                               handleWhatsAppInquiry(
                                 item,
-                              )
-                            }
-                            className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1 transition-colors"
+                              );
+                            }}
+                            className="bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1 transition-colors z-10 relative"
                           >
                             <MessageCircle
                               size={

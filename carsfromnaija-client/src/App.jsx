@@ -6,6 +6,7 @@ import PublicLayout from "./components/PublicLayout";
 import Home from "./pages/Home";
 import Inventory from "./pages/Inventory";
 import CarDetail from "./pages/CarDetail";
+import MarketPriceGuide from "./pages/MarketPriceGuide";
 
 // Admin Components & Auth Guard
 import ProtectedRoute from "./components/admin/ProtectedRoute";
@@ -44,6 +45,12 @@ export default function App() {
           }
         />
       </Route>
+      <Route
+        path="/market-price-guide"
+        element={
+          <MarketPriceGuide />
+        }
+      />
 
       {/* Unprotected Admin Login Route */}
       <Route

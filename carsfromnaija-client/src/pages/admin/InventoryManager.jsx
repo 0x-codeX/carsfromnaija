@@ -200,10 +200,6 @@ export default function InventoryManager() {
                   </th>
                   <th className="p-4">
                     Price
-                    (USD)
-                  </th>
-                  <th className="p-4">
-                    Price
                     (NGN)
                   </th>
                   <th className="p-4">
@@ -257,10 +253,6 @@ export default function InventoryManager() {
                             }
                           </p>
                         </div>
-                      </td>
-                      <td className="p-4 font-semibold text-slate-700">
-                        $
-                        {car.priceUSD?.toLocaleString()}
                       </td>
                       <td className="p-4 font-bold text-slate-900">
                         ₦

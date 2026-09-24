@@ -53,7 +53,7 @@ const Navbar =
     }, []);
 
     return (
-      <nav className="bg-slate-900 text-white py-4 shadow-md sticky top-0 z-50">
+      <nav className="bg-purple-950 text-white py-4 shadow-md sticky top-0 z-50 border-b border-purple-900">
         <div className="w-full px-6 md:px-12 max-w-[1920px] mx-auto flex justify-between items-center relative">
           {/* Left: Logo */}
           <Link
@@ -74,7 +74,7 @@ const Navbar =
             <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 md:left-auto md:mr-8">
               <Link
                 to="/inventory"
-                className="text-gray-300 hover:text-blue-400 transition-colors font-medium text-sm sm:text-base whitespace-nowrap"
+                className="text-gray-300 hover:text-purple-400 transition-colors font-medium text-sm sm:text-base whitespace-nowrap"
               >
                 Inventory
               </Link>

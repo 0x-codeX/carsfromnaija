@@ -175,7 +175,7 @@ export default function Home() {
                   alt="Luxury Car"
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-slate-950/70"></div>
+                <div className="absolute inset-0 bg-purple-950/80"></div>
               </div>
             ),
           )}
@@ -191,7 +191,7 @@ export default function Home() {
               Dream
               Drive{" "}
               <br />
-              <span className="text-blue-500">
+              <span className="text-purple-500">
                 In
                 Nigeria
               </span>
