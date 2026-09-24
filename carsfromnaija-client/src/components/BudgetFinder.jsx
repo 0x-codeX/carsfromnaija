@@ -340,13 +340,58 @@ export default function BudgetFinder({
             )
               return false;
 
-            // Filter by text keywords (Make, Model, Title, Category)
+            // Filter by text keywords (Make, Model, Title, Category, Specs, Features - excluding mileage)
             if (
               textTokens.length >
               0
             ) {
+              // Safely extract all specifications except mileage
+              const specsString =
+                car.specs
+                  ? Object.entries(
+                      car.specs,
+                    )
+                      .filter(
+                        ([
+                          key,
+                        ]) =>
+                          key !==
+                          "mileage",
+                      )
+                      .map(
+                        ([
+                          ,
+                          val,
+                        ]) =>
+                          val,
+                      )
+                      .join(
+                        " ",
+                      )
+                  : "";
+
+              // Safely extract the array of features
+              const featuresString =
+                Array.isArray(
+                  car.features,
+                )
+                  ? car.features.join(
+                      " ",
+                    )
+                  : "";
+
+              // Expand "Registered" condition to match common alias terms ("nigerian used", "used")
+              const conditionTerms =
+                car.condition?.toLowerCase() ===
+                "registered"
+                  ? "registered nigerian used naija used locally used local used"
+                  : car.condition ||
+                    "";
+
+              // Combine all details into a single master search string
               const searchableString =
-                `${car.year || ""} ${car.make || ""} ${car.model || ""} ${car.title || ""} ${car.category || ""}`.toLowerCase();
+                `${car.year || ""} ${car.make || ""} ${car.model || ""} ${car.title || ""} ${car.category || ""} ${conditionTerms} ${car.bodyType || ""} ${specsString} ${featuresString}`.toLowerCase();
+
               const matchesAll =
                 textTokens.every(
                   (
