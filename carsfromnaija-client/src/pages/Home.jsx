@@ -15,6 +15,15 @@ const HERO_CAROUSEL =
     "https://images.unsplash.com/photo-1577615765564-4ee327d3fc49?q=80&w=1920&auto=format&fit=crop",
   ];
 
+const ROTATING_WORDS =
+  [
+    "Dream",
+    "Budget",
+    "Luxury",
+    "Hybrid",
+    "Business",
+  ];
+
 export default function Home() {
   const [
     settings,
@@ -43,6 +52,58 @@ export default function Home() {
     useState(
       0,
     );
+
+  const [
+    wordIndex,
+    setWordIndex,
+  ] =
+    useState(
+      0,
+    );
+  const [
+    isFading,
+    setIsFading,
+  ] =
+    useState(
+      false,
+    );
+
+  // Cycle heading word every 5 seconds with a smooth slow fade transition
+  useEffect(() => {
+    const wordTimer =
+      setInterval(
+        () => {
+          // Step 1: Trigger slow fade-out
+          setIsFading(
+            true,
+          );
+
+          // Step 2: Swap word and fade-in after 700ms transition completes
+          setTimeout(
+            () => {
+              setWordIndex(
+                (
+                  prev,
+                ) =>
+                  (prev +
+                    1) %
+                  ROTATING_WORDS.length,
+              );
+              setIsFading(
+                false,
+              );
+            },
+            700,
+          );
+        },
+        5000,
+      );
+
+    return () =>
+      clearInterval(
+        wordTimer,
+      );
+  }, []);
 
   // Fetch Settings & Available Inventory
   useEffect(() => {
@@ -187,10 +248,22 @@ export default function Home() {
           <div className="w-full lg:w-1/2 text-center lg:text-left text-white">
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6">
               Find
-              Your
-              Dream
-              Drive{" "}
+              Your{" "}
+              <span
+                className={`inline-block text-purple-400 transition-all duration-700 ease-in-out transform ${
+                  isFading
+                    ? "opacity-0 -translate-y-2"
+                    : "opacity-100 translate-y-0"
+                }`}
+              >
+                {
+                  ROTATING_WORDS[
+                    wordIndex
+                  ]
+                }
+              </span>
               <br />
+              Car{" "}
               <span className="text-purple-500">
                 In
                 Nigeria
