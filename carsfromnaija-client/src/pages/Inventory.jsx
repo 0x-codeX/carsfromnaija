@@ -4,6 +4,8 @@ import {
 } from "react";
 import CarCard from "../components/CarCard";
 import API from "../api/axios";
+import { Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 const TOP_MAKES =
   [
@@ -471,6 +473,76 @@ export default function Inventory() {
       );
     };
 
+  // Flexible budget amount parser
+  const parseMaxPrice =
+    (
+      val,
+    ) => {
+      if (
+        !val
+      )
+        return null;
+      const clean =
+        val
+          .toString()
+          .trim()
+          .toLowerCase()
+          .replace(
+            /,/g,
+            "",
+          );
+      if (
+        /^\d+(\.\d+)?m$/.test(
+          clean,
+        )
+      )
+        return (
+          parseFloat(
+            clean,
+          ) *
+          1000000
+        );
+      if (
+        /^\d+(\.\d+)?k$/.test(
+          clean,
+        )
+      )
+        return (
+          parseFloat(
+            clean,
+          ) *
+          1000
+        );
+      const num =
+        Number(
+          clean,
+        );
+      if (
+        !isNaN(
+          num,
+        ) &&
+        num >
+          0
+      ) {
+        if (
+          num <=
+          200
+        )
+          return (
+            num *
+            1000000
+          ); // e.g., "15" -> 15 Million
+        return num;
+      }
+      return null;
+    };
+
+  // Real-time filtering calculation using live input values
+  const parsedMaxPrice =
+    parseMaxPrice(
+      maxPrice,
+    );
+
   const filteredCars =
     cars.filter(
       (
@@ -483,18 +555,19 @@ export default function Inventory() {
         )
           return false;
 
+        // Filter by Make
         if (
-          appliedFilters.make
+          selectedMake
         ) {
           if (
-            appliedFilters.make ===
+            selectedMake ===
             "Other"
           ) {
             if (
-              appliedFilters.customMake
+              customMake
             ) {
               const targetMake =
-                appliedFilters.customMake.toLowerCase();
+                customMake.toLowerCase();
               const carMake =
                 car.make?.toLowerCase() ||
                 "";
@@ -510,26 +583,10 @@ export default function Inventory() {
                 )
               )
                 return false;
-            } else {
-              const carMake =
-                car.make ||
-                "";
-              const isPreset =
-                ALL_PRESET_MAKES.some(
-                  (
-                    p,
-                  ) =>
-                    p.toLowerCase() ===
-                    carMake.toLowerCase(),
-                );
-              if (
-                isPreset
-              )
-                return false;
             }
           } else {
             const targetMake =
-              appliedFilters.make.toLowerCase();
+              selectedMake.toLowerCase();
             const carMake =
               car.make?.toLowerCase() ||
               "";
@@ -547,13 +604,14 @@ export default function Inventory() {
           }
         }
 
+        // Filter by Model
         if (
-          appliedFilters.make ===
+          selectedMake ===
             "Other" &&
-          appliedFilters.customModel
+          customModel
         ) {
           const targetModel =
-            appliedFilters.customModel.toLowerCase();
+            customModel.toLowerCase();
           const carModel =
             car.model?.toLowerCase() ||
             "";
@@ -570,10 +628,10 @@ export default function Inventory() {
           )
             return false;
         } else if (
-          appliedFilters.model
+          selectedModel
         ) {
           const targetModel =
-            appliedFilters.model.toLowerCase();
+            selectedModel.toLowerCase();
           const carModel =
             car.model?.toLowerCase() ||
             "";
@@ -590,30 +648,31 @@ export default function Inventory() {
             return false;
         }
 
+        // Filter by Year
         if (
-          appliedFilters.year
+          selectedYear
         ) {
           if (
             Number(
               car.year,
             ) !==
             Number(
-              appliedFilters.year,
+              selectedYear,
             )
           )
             return false;
         }
 
+        // Real-time Max Price Filter
         if (
-          appliedFilters.maxPrice
+          parsedMaxPrice !==
+          null
         ) {
           if (
             Number(
               car.priceNGN,
             ) >
-            Number(
-              appliedFilters.maxPrice,
-            )
+            parsedMaxPrice
           )
             return false;
         }
@@ -631,8 +690,20 @@ export default function Inventory() {
       : [];
 
   return (
-    <div className="container mx-auto px-4 py-12 flex flex-col md:flex-row gap-8">
-      <aside className="w-full md:w-72 flex-shrink-0">
+    <div className="container mx-auto px-4 py-12">
+      {/* Sticky Back to Home Button */}
+      <div className="sticky top-[80px] z-40 mb-8 py-1 px-1 bg-white/80 backdrop-blur-lg border border-slate-200 shadow-sm rounded-xl w-max">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 px-4 py-2 text-slate-700 font-bold text-sm hover:text-purple-700 bg-transparent rounded-lg transition-colors"
+        >
+          <ArrowLeft size={18} />
+          Back to Home
+        </Link>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-8">
+        <aside className="w-full md:w-72 flex-shrink-0">
         <form
           onSubmit={
             handleApplyFilters
@@ -989,6 +1060,7 @@ export default function Inventory() {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }

@@ -374,18 +374,17 @@ export default function CarDetail() {
           carSchema,
         )}
       </script>
-      {/* SEO INJECTION END */}
-      {/* Back Button */}
-      <div className="mb-6">
+      {/* Sticky Back Button Container */}
+      <div className="sticky top-[80px] z-40 mb-6 py-1 px-1 bg-white/80 backdrop-blur-lg border border-slate-200 shadow-sm rounded-xl w-max">
         <Link
           to={
             backRoute
           }
-          className="inline-flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-blue-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 text-slate-700 font-bold text-sm hover:text-blue-700 bg-transparent rounded-lg transition-colors"
         >
           <ArrowLeft
             size={
-              16
+              18
             }
           />
           {

@@ -499,6 +499,29 @@ export default function Settings() {
         true,
       );
 
+      const hasInvalidPrices =
+        settings.priceGuides.some(
+          (
+            guide,
+          ) =>
+            guide.priceMaxNGN >
+              0 &&
+            guide.priceMaxNGN <
+              guide.priceMinNGN,
+        );
+
+      if (
+        hasInvalidPrices
+      ) {
+        return alert(
+          "Submission blocked: One or more Market Price Guides have a maximum price lower than the minimum price. Please fix the errors before saving.",
+        );
+      }
+
+      setSaving(
+        true,
+      );
+
       // Format numeric values before payload dispatch
       const payload =
         {
@@ -1160,9 +1183,32 @@ export default function Settings() {
                               ),
                             )
                           }
-                          className="w-full bg-white border border-slate-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:border-blue-500 h-full"
+                          className={`w-full bg-white border rounded-md px-3 py-1 text-sm focus:outline-none h-full ${
+                            guide.priceMaxNGN >
+                              0 &&
+                            guide.priceMaxNGN <
+                              guide.priceMinNGN
+                              ? "border-red-500 focus:border-red-500 bg-red-50"
+                              : "border-slate-300 focus:border-blue-500"
+                          }`}
                         />
                       </div>
+                      {/* Real-time Validation Warning */}
+                      {guide.priceMaxNGN >
+                        0 &&
+                        guide.priceMaxNGN <
+                          guide.priceMinNGN && (
+                          <p className="text-red-500 text-[11px] mt-1.5 font-bold animate-in fade-in slide-in-from-top-1">
+                            Max
+                            price
+                            cannot
+                            be
+                            less
+                            than
+                            min
+                            price.
+                          </p>
+                        )}
                     </div>
 
                     <div className="col-span-12 md:col-span-3">

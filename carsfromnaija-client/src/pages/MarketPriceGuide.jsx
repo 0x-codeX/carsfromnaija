@@ -12,6 +12,7 @@ import {
   X,
   Maximize2,
   ArrowLeft,
+  Search,
 } from "lucide-react";
 import API from "../api/axios";
 import Navbar from "../components/Navbar";
@@ -261,6 +262,80 @@ function GuideCard({
   );
 }
 
+// Helper parser: Extracts budget range (min & max), year, and text keywords
+  const parseSearchQuery = (rawQuery) => {
+    const trimmed = rawQuery.trim().toLowerCase();
+    if (!trimmed) {
+      return { minBudget: null, maxBudget: null, year: null, textTokens: [] };
+    }
+
+    // Split by space, handle hyphens for ranges
+    const tokens = trimmed.replace(/-/g, " ").split(/\s+/);
+    const numbers = [];
+    let year = null;
+    const textTokens = [];
+    const currentYear = new Date().getFullYear() + 1;
+
+    tokens.forEach((token) => {
+      const cleanToken = token.replace(/,/g, "");
+
+      // Ignore common filler words for ranges
+      if (cleanToken === "to" || cleanToken === "and") return;
+
+      let parsedNumber = null;
+
+      // 1. Million shorthand e.g., "20m", "20.5m"
+      if (/^\d+(\.\d+)?m$/i.test(cleanToken)) {
+        parsedNumber = parseFloat(cleanToken) * 1000000;
+      }
+      // 2. Thousand shorthand e.g., "500k"
+      else if (/^\d+(\.\d+)?k$/i.test(cleanToken)) {
+        parsedNumber = parseFloat(cleanToken) * 1000;
+      }
+      // 3. Pure numbers
+      else if (/^\d+(\.\d+)?$/.test(cleanToken)) {
+        const val = parseFloat(cleanToken);
+
+        // 4-digit year check (1990 - currentYear)
+        if (val >= 1990 && val <= currentYear && Number.isInteger(val)) {
+          year = val;
+          return;
+        }
+
+        // Nigerian shorthand: numbers <= 200 treated as millions
+        if (val > 0 && val <= 200) {
+          parsedNumber = val * 1000000;
+        } else if (val > 200) {
+          parsedNumber = val;
+        }
+      }
+
+      if (parsedNumber !== null) {
+        numbers.push(parsedNumber);
+      } else {
+        // 4. Text token (Make, Model, Category)
+        textTokens.push(token);
+      }
+    });
+
+    let minBudget = null;
+    let maxBudget = null;
+
+    if (numbers.length === 1) {
+      minBudget = numbers[0];
+      const valStr = Math.floor(numbers[0]).toString();
+      // Replace trailing zeros with 9s to form the upper range limit
+      const maxStr = valStr.replace(/0+$/, (zeros) => "9".repeat(zeros.length));
+      maxBudget = parseFloat(maxStr);
+    } else if (numbers.length >= 2) {
+      // Explicit range provided (e.g. 10m to 20m)
+      minBudget = Math.min(numbers[0], numbers[1]);
+      maxBudget = Math.max(numbers[0], numbers[1]);
+    }
+
+    return { minBudget, maxBudget, year, textTokens };
+  };
+
 export default function MarketPriceGuide() {
   const [
     guides,
@@ -287,6 +362,14 @@ export default function MarketPriceGuide() {
   ] =
     useState(
       true,
+    );
+
+  const [
+    guideSearch,
+    setGuideSearch,
+  ] =
+    useState(
+      "",
     );
 
   const [
@@ -477,6 +560,89 @@ export default function MarketPriceGuide() {
     );
   }
 
+  const {
+    minBudget,
+    maxBudget,
+    year,
+    textTokens,
+  } =
+    parseSearchQuery(
+      guideSearch,
+    );
+
+  const filteredGuides =
+    guides.filter(
+      (
+        guide,
+      ) => {
+        // 1. Filter by budget range overlap
+        if (
+          minBudget !==
+            null &&
+          maxBudget !==
+            null
+        ) {
+          const guideMin =
+            guide.priceMinNGN ||
+            0;
+          const guideMax =
+            guide.priceMaxNGN ||
+            guideMin;
+
+          // Exclude if guide price range doesn't overlap with searched budget
+          if (
+            guideMin >
+              maxBudget ||
+            guideMax <
+              minBudget
+          ) {
+            return false;
+          }
+        }
+
+        // 2. Filter by year range
+        if (
+          year !==
+          null
+        ) {
+          if (
+            !(
+              year >=
+                guide.yearStart &&
+              year <=
+                guide.yearEnd
+            )
+          ) {
+            return false;
+          }
+        }
+
+        // 3. Filter by text keywords (Make, Model, Category)
+        if (
+          textTokens.length >
+          0
+        ) {
+          const searchableString =
+            `${guide.yearStart || ""}-${guide.yearEnd || ""} ${guide.make || ""} ${guide.model || ""} ${guide.category || ""}`.toLowerCase();
+          const matchesAll =
+            textTokens.every(
+              (
+                token,
+              ) =>
+                searchableString.includes(
+                  token,
+                ),
+            );
+          if (
+            !matchesAll
+          )
+            return false;
+        }
+
+        return true;
+      },
+    );
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
@@ -484,10 +650,10 @@ export default function MarketPriceGuide() {
       <main className="flex-grow py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto space-y-10">
           {/* Back Navigation Button */}
-          <div>
+          <div className="sticky top-20 z-40 w-fit pointer-events-auto">
             <Link
               to="/"
-              className="inline-flex items-center gap-2 px-4 py-2 text-slate-600 hover:text-purple-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors text-sm font-semibold shadow-sm w-fit"
+              className="inline-flex items-center gap-2 px-4 py-2 text-slate-800 hover:text-purple-700 bg-white/90 backdrop-blur-md border border-slate-200 rounded-lg hover:bg-white transition-all text-sm font-bold shadow-md"
             >
               <ArrowLeft
                 size={
@@ -582,7 +748,53 @@ export default function MarketPriceGuide() {
             </div>
           </div>
 
+          {/* Real-Time Budget & Model Search Bar */}
+          <div className="max-w-md mx-auto mb-8 relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+              <Search
+                size={
+                  18
+                }
+              />
+            </span>
+            <input
+              type="text"
+              value={
+                guideSearch
+              }
+              onChange={(
+                e,
+              ) =>
+                setGuideSearch(
+                  e
+                    .target
+                    .value,
+                )
+              }
+              placeholder="Filter by budget (e.g. 15m), year, or model..."
+              className="w-full pl-11 pr-10 py-3 rounded-xl border border-slate-300 bg-white shadow-sm focus:ring-2 focus:ring-purple-500 focus:outline-none text-sm text-slate-900 placeholder:text-slate-400 font-medium"
+            />
+            {guideSearch && (
+              <button
+                type="button"
+                onClick={() =>
+                  setGuideSearch(
+                    "",
+                  )
+                }
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 rounded-full"
+              >
+                <X
+                  size={
+                    16
+                  }
+                />
+              </button>
+            )}
+          </div>
+
           {/* Grid of Price Guides */}
+          {/* REPLACE THE GUIDES GRID CONTAINER WITH THIS: */}
           {guides.length ===
           0 ? (
             <div className="text-center bg-white p-12 rounded-2xl border border-slate-200 text-slate-500">
@@ -596,9 +808,39 @@ export default function MarketPriceGuide() {
               back
               soon!
             </div>
+          ) : filteredGuides.length ===
+            0 ? (
+            <div className="text-center bg-white p-12 rounded-2xl border border-slate-200 text-slate-500">
+              <AlertCircle
+                size={
+                  32
+                }
+                className="mx-auto mb-2 text-slate-400"
+              />
+              <p className="font-bold text-slate-700">
+                No
+                matching
+                market
+                guides
+                found
+              </p>
+              <p className="text-xs text-slate-500 mt-1">
+                Try
+                adjusting
+                your
+                budget
+                or
+                search
+                keywords
+                (e.g.
+                "15m",
+                "Toyota",
+                "2020").
+              </p>
+            </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {guides.map(
+              {filteredGuides.map(
                 (
                   guide,
                   index,

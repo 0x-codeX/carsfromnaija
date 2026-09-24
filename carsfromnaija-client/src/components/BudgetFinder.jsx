@@ -79,200 +79,421 @@ export default function BudgetFinder({
       );
   }, []);
 
+  // Helper parser: Extracts budget range (min & max), year, and text keywords
+  const parseSearchQuery =
+    (
+      rawQuery,
+    ) => {
+      const trimmed =
+        rawQuery
+          .trim()
+          .toLowerCase();
+      if (
+        !trimmed
+      ) {
+        return {
+          minBudget:
+            null,
+          maxBudget:
+            null,
+          year: null,
+          textTokens:
+            [],
+        };
+      }
+
+      // Split by space, handle hyphens for ranges
+      const tokens =
+        trimmed
+          .replace(
+            /-/g,
+            " ",
+          )
+          .split(
+            /\s+/,
+          );
+      const numbers =
+        [];
+      let year =
+        null;
+      const textTokens =
+        [];
+      const currentYear =
+        new Date().getFullYear() +
+        1;
+
+      tokens.forEach(
+        (
+          token,
+        ) => {
+          const cleanToken =
+            token.replace(
+              /,/g,
+              "",
+            );
+
+          // Ignore common filler words for ranges
+          if (
+            cleanToken ===
+              "to" ||
+            cleanToken ===
+              "and"
+          )
+            return;
+
+          let parsedNumber =
+            null;
+
+          // 1. Million shorthand e.g., "20m", "20.5m"
+          if (
+            /^\d+(\.\d+)?m$/i.test(
+              cleanToken,
+            )
+          ) {
+            parsedNumber =
+              parseFloat(
+                cleanToken,
+              ) *
+              1000000;
+          }
+          // 2. Thousand shorthand e.g., "500k"
+          else if (
+            /^\d+(\.\d+)?k$/i.test(
+              cleanToken,
+            )
+          ) {
+            parsedNumber =
+              parseFloat(
+                cleanToken,
+              ) *
+              1000;
+          }
+          // 3. Pure numbers
+          else if (
+            /^\d+(\.\d+)?$/.test(
+              cleanToken,
+            )
+          ) {
+            const val =
+              parseFloat(
+                cleanToken,
+              );
+
+            // 4-digit year check (1990 - currentYear)
+            if (
+              val >=
+                1990 &&
+              val <=
+                currentYear &&
+              Number.isInteger(
+                val,
+              )
+            ) {
+              year =
+                val;
+              return;
+            }
+
+            // Nigerian shorthand: numbers <= 200 treated as millions
+            if (
+              val >
+                0 &&
+              val <=
+                200
+            ) {
+              parsedNumber =
+                val *
+                1000000;
+            } else if (
+              val >
+              200
+            ) {
+              parsedNumber =
+                val;
+            }
+          }
+
+          if (
+            parsedNumber !==
+            null
+          ) {
+            numbers.push(
+              parsedNumber,
+            );
+          } else {
+            // 4. Text token (Make, Model, Category)
+            textTokens.push(
+              token,
+            );
+          }
+        },
+      );
+
+      let minBudget =
+        null;
+      let maxBudget =
+        null;
+
+      if (
+        numbers.length ===
+        1
+      ) {
+        minBudget =
+          numbers[0];
+        const valStr =
+          Math.floor(
+            numbers[0],
+          ).toString();
+        // Replace trailing zeros with 9s to form the upper range limit
+        const maxStr =
+          valStr.replace(
+            /0+$/,
+            (
+              zeros,
+            ) =>
+              "9".repeat(
+                zeros.length,
+              ),
+          );
+        maxBudget =
+          parseFloat(
+            maxStr,
+          );
+      } else if (
+        numbers.length >=
+        2
+      ) {
+        // Explicit range provided (e.g. 10m to 20m)
+        minBudget =
+          Math.min(
+            numbers[0],
+            numbers[1],
+          );
+        maxBudget =
+          Math.max(
+            numbers[0],
+            numbers[1],
+          );
+      }
+
+      return {
+        minBudget,
+        maxBudget,
+        year,
+        textTokens,
+      };
+    };
+
+  // Real-time search effect triggers on every keystroke
+  useEffect(() => {
+    if (
+      !searchQuery.trim()
+    ) {
+      setResults(
+        [],
+      );
+      setHasSearched(
+        false,
+      );
+      return;
+    }
+
+    const {
+      minBudget,
+      maxBudget,
+      year,
+      textTokens,
+    } =
+      parseSearchQuery(
+        searchQuery,
+      );
+
+    // 1. Search Active Inventory
+    const matchedInventory =
+      inventory
+        .filter(
+          (
+            car,
+          ) => {
+            // Filter by dynamic budget range (car price must be within min & max range)
+            if (
+              minBudget !==
+                null &&
+              maxBudget !==
+                null
+            ) {
+              if (
+                car.priceNGN <
+                  minBudget ||
+                car.priceNGN >
+                  maxBudget
+              )
+                return false;
+            }
+
+            // Filter by year
+            if (
+              year !==
+                null &&
+              car.year !==
+                year
+            )
+              return false;
+
+            // Filter by text keywords (Make, Model, Title, Category)
+            if (
+              textTokens.length >
+              0
+            ) {
+              const searchableString =
+                `${car.year || ""} ${car.make || ""} ${car.model || ""} ${car.title || ""} ${car.category || ""}`.toLowerCase();
+              const matchesAll =
+                textTokens.every(
+                  (
+                    token,
+                  ) =>
+                    searchableString.includes(
+                      token,
+                    ),
+                );
+              if (
+                !matchesAll
+              )
+                return false;
+            }
+
+            return true;
+          },
+        )
+        .map(
+          (
+            car,
+          ) => ({
+            ...car,
+            isInventory: true,
+          }),
+        );
+
+    // 2. Search Market Price Guides
+    const matchedGuides =
+      priceGuides
+        .filter(
+          (
+            guide,
+          ) => {
+            // Filter by budget: guide price range must overlap with searched range
+            if (
+              minBudget !==
+                null &&
+              maxBudget !==
+                null
+            ) {
+              const guideMin =
+                guide.priceMinNGN ||
+                0;
+              const guideMax =
+                guide.priceMaxNGN ||
+                guideMin;
+              if (
+                guideMin >
+                  maxBudget ||
+                guideMax <
+                  minBudget
+              )
+                return false;
+            }
+
+            // Filter by year: guide year range must include year
+            if (
+              year !==
+                null &&
+              !(
+                year >=
+                  guide.yearStart &&
+                year <=
+                  guide.yearEnd
+              )
+            ) {
+              return false;
+            }
+
+            // Filter by text keywords
+            if (
+              textTokens.length >
+              0
+            ) {
+              const searchableString =
+                `${guide.yearStart || ""}-${guide.yearEnd || ""} ${guide.make || ""} ${guide.model || ""} ${guide.category || ""}`.toLowerCase();
+              const matchesAll =
+                textTokens.every(
+                  (
+                    token,
+                  ) =>
+                    searchableString.includes(
+                      token,
+                    ),
+                );
+              if (
+                !matchesAll
+              )
+                return false;
+            }
+
+            return true;
+          },
+        )
+        .map(
+          (
+            guide,
+          ) => ({
+            ...guide,
+            isInventory: false,
+          }),
+        );
+
+    // 3. Sort high-to-low closest to top budget
+    if (
+      minBudget !==
+      null
+    ) {
+      matchedInventory.sort(
+        (
+          a,
+          b,
+        ) =>
+          b.priceNGN -
+          a.priceNGN,
+      );
+      matchedGuides.sort(
+        (
+          a,
+          b,
+        ) =>
+          b.priceMinNGN -
+          a.priceMinNGN,
+      );
+    }
+
+    setResults(
+      [
+        ...matchedInventory,
+        ...matchedGuides,
+      ],
+    );
+    setHasSearched(
+      true,
+    );
+  }, [
+    searchQuery,
+    inventory,
+    priceGuides,
+  ]);
+
   const handleSubmit =
     (
       e,
     ) => {
       e.preventDefault();
-      const rawQuery =
-        searchQuery
-          .trim()
-          .toLowerCase();
-      if (
-        !rawQuery
-      )
-        return;
-
-      // 1. Bulletproof Number Parsing
-      // Strips commas to handle "15,000,000" gracefully
-      let numericQuery =
-        Number(
-          rawQuery.replace(
-            /,/g,
-            "",
-          ),
-        );
-
-      // Handles casual Nigerian pricing shorthand like "15m" for 15 million
-      if (
-        rawQuery.endsWith(
-          "m",
-        ) &&
-        !isNaN(
-          parseFloat(
-            rawQuery,
-          ),
-        )
-      ) {
-        numericQuery =
-          parseFloat(
-            rawQuery,
-          ) *
-          1000000;
-      }
-
-      const isNumeric =
-        !isNaN(
-          numericQuery,
-        ) &&
-        numericQuery >
-          0;
-      const currentYear =
-        new Date().getFullYear() +
-        1;
-
-      // 2. Tokenize Query for Multi-Word Matches
-      // Splits "Toyota Camry 2015" into ["toyota", "camry", "2015"]
-      const searchTokens =
-        rawQuery.split(
-          /\s+/,
-        );
-
-      // 3. Search Active Inventory First
-      const matchedInventory =
-        inventory
-          .filter(
-            (
-              car,
-            ) => {
-              if (
-                isNumeric
-              ) {
-                if (
-                  numericQuery >=
-                    1990 &&
-                  numericQuery <=
-                    currentYear &&
-                  car.year ===
-                    numericQuery
-                )
-                  return true;
-                if (
-                  numericQuery >=
-                  car.priceNGN
-                )
-                  return true;
-              }
-
-              // Combine all relevant fields into one searchable master string
-              const searchableString =
-                `${car.year || ""} ${car.make || ""} ${car.model || ""} ${car.title || ""} ${car.category || ""}`.toLowerCase();
-
-              // Every word the user typed MUST exist somewhere in this master string
-              return searchTokens.every(
-                (
-                  token,
-                ) =>
-                  searchableString.includes(
-                    token,
-                  ),
-              );
-            },
-          )
-          .map(
-            (
-              car,
-            ) => ({
-              ...car,
-              isInventory: true,
-            }),
-          );
-
-      // 4. Search Market Price Guides
-      const matchedGuides =
-        priceGuides
-          .filter(
-            (
-              guide,
-            ) => {
-              if (
-                isNumeric
-              ) {
-                if (
-                  numericQuery >=
-                    1990 &&
-                  numericQuery <=
-                    currentYear &&
-                  numericQuery >=
-                    guide.yearStart &&
-                  numericQuery <=
-                    guide.yearEnd
-                )
-                  return true;
-                if (
-                  numericQuery >=
-                  guide.priceMinNGN
-                )
-                  return true;
-              }
-
-              // Combine guide fields into a searchable master string
-              const searchableString =
-                `${guide.yearStart || ""}-${guide.yearEnd || ""} ${guide.make || ""} ${guide.model || ""} ${guide.category || ""}`.toLowerCase();
-
-              return searchTokens.every(
-                (
-                  token,
-                ) =>
-                  searchableString.includes(
-                    token,
-                  ),
-              );
-            },
-          )
-          .map(
-            (
-              guide,
-            ) => ({
-              ...guide,
-              isInventory: false,
-            }),
-          );
-
-      // 5. Sort high-to-low if it's a budget search
-      if (
-        isNumeric &&
-        numericQuery >
-          1000000
-      ) {
-        matchedInventory.sort(
-          (
-            a,
-            b,
-          ) =>
-            b.priceNGN -
-            a.priceNGN,
-        );
-        matchedGuides.sort(
-          (
-            a,
-            b,
-          ) =>
-            b.priceMinNGN -
-            a.priceMinNGN,
-        );
-      }
-
-      // 6. Combine results: In-stock inventory strictly goes first, market guides follow
-      setResults(
-        [
-          ...matchedInventory,
-          ...matchedGuides,
-        ],
-      );
-      setHasSearched(
-        true,
-      );
     };
 
   const closeResults =
