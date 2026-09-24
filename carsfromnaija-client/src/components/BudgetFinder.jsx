@@ -449,9 +449,9 @@ export default function BudgetFinder({
                         if (
                           item.isInventory
                         ) {
-                          // Navigates to the specific car details page
+                          // Navigates to the specific car details page matching the View Details button
                           navigate(
-                            `/cars/${item._id}`,
+                            `/car/${item._id}`,
                           );
                         } else {
                           // Navigates to the market guide page
