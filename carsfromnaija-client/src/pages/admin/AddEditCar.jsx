@@ -59,6 +59,47 @@ const ALL_PRESET_MAKES =
     ...ALPHABETICAL_MAKES,
   ];
 
+const NIGERIAN_STATES =
+  [
+    "Abia",
+    "Adamawa",
+    "Akwa Ibom",
+    "Anambra",
+    "Bauchi",
+    "Bayelsa",
+    "Benue",
+    "Borno",
+    "Cross River",
+    "Delta",
+    "Ebonyi",
+    "Edo",
+    "Ekiti",
+    "Enugu",
+    "FCT - Abuja",
+    "Gombe",
+    "Imo",
+    "Jigawa",
+    "Kaduna",
+    "Kano",
+    "Katsina",
+    "Kebbi",
+    "Kogi",
+    "Kwara",
+    "Lagos",
+    "Nasarawa",
+    "Niger",
+    "Ogun",
+    "Ondo",
+    "Osun",
+    "Oyo",
+    "Plateau",
+    "Rivers",
+    "Sokoto",
+    "Taraba",
+    "Yobe",
+    "Zamfara",
+  ];
+
 const CAR_MODELS_MAP =
   {
     Toyota:
@@ -320,6 +361,8 @@ export default function AddEditCar() {
           "Foreign Used",
         bodyType:
           "",
+        location:
+          "Lagos", // <-- Add this line
         specs:
           {
             mileage:
@@ -512,6 +555,9 @@ export default function AddEditCar() {
                 bodyType:
                   data.bodyType ||
                   "",
+                location:
+                  data.location ||
+                  "Lagos",
                 specs:
                   data.specs || {
                     mileage:
@@ -925,6 +971,10 @@ export default function AddEditCar() {
       submitData.append(
         "bodyType",
         formData.bodyType,
+      );
+      submitData.append(
+        "location",
+        formData.location,
       );
       submitData.append(
         "specs",
@@ -1578,6 +1628,57 @@ export default function AddEditCar() {
                 </option>
               </select>
             </div>
+
+            {/* Location Dropdown */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">
+                Location
+                (State)
+              </label>
+              <select
+                required
+                value={
+                  formData.location
+                }
+                onChange={(
+                  e,
+                ) =>
+                  setFormData(
+                    {
+                      ...formData,
+                      location:
+                        e
+                          .target
+                          .value,
+                    },
+                  )
+                }
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+              >
+                <option value="">
+                  Select
+                  Location...
+                </option>
+                {NIGERIAN_STATES.map(
+                  (
+                    state,
+                  ) => (
+                    <option
+                      key={
+                        state
+                      }
+                      value={
+                        state
+                      }
+                    >
+                      {
+                        state
+                      }
+                    </option>
+                  ),
+                )}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -1614,6 +1715,39 @@ export default function AddEditCar() {
               }
               className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 font-bold text-blue-600"
             />
+          </div>
+
+          {/* Negotiable Checkbox */}
+          <div className="flex items-center gap-2.5 pt-1">
+            <input
+              type="checkbox"
+              id="isNegotiable"
+              checked={Boolean(
+                formData.isNegotiable,
+              )}
+              onChange={(
+                e,
+              ) =>
+                setFormData(
+                  {
+                    ...formData,
+                    isNegotiable:
+                      e
+                        .target
+                        .checked,
+                  },
+                )
+              }
+              className="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500 cursor-pointer"
+            />
+            <label
+              htmlFor="isNegotiable"
+              className="text-sm font-semibold text-slate-700 cursor-pointer select-none"
+            >
+              Price
+              is
+              Negotiable
+            </label>
           </div>
 
           {/* Vehicle Specifications Section */}

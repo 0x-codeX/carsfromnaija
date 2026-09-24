@@ -223,6 +223,12 @@ export default function CarDetail() {
       ],
     );
 
+  const isNegotiable =
+    car.isNegotiable ===
+      true ||
+    car.isNegotiable ===
+      "true";
+
   const handleWhatsApp =
     () => {
       const rawPhoneNumber =
@@ -268,7 +274,7 @@ export default function CarDetail() {
       name: car.title,
       image:
         mainImageUrl,
-      description: `For sale in Lagos, Nigeria: ${car.year || ""} ${car.make || ""} ${car.model || ""}.`,
+      description: `For sale in ${car.location || "Lagos"}, Nigeria: ${car.year || ""} ${car.make || ""} ${car.model || ""}.`,
       brand:
         {
           "@type":
@@ -349,18 +355,18 @@ export default function CarDetail() {
     <div className="container mx-auto px-4 py-12 max-w-6xl">
       {/* SEO INJECTION START */}
       <Helmet>
-        <title>{`${car.title} for Sale in Lagos, Nigeria | CarsFromNaija`}</title>
+        <title>{`${car.title} for Sale in ${car.location || "Lagos"}, Nigeria | CarsFromNaija`}</title>
         <meta
           name="description"
-          content={`Buy this ${car.condition || "used"} ${car.year || ""} ${car.make || ""} ${car.model || ""} in Lagos. Price: ₦${car.priceNGN ? Number(car.priceNGN).toLocaleString() : "Contact for price"}. Contact us on WhatsApp today.`}
+          content={`Buy this ${car.condition || "used"} ${car.year || ""} ${car.make || ""} ${car.model || ""} in ${car.location || "Lagos"}. Price: ₦${car.priceNGN ? Number(car.priceNGN).toLocaleString() : "Contact for price"}. Contact us on WhatsApp today.`}
         />
         <meta
           property="og:title"
-          content={`${car.title} for Sale in Lagos`}
+          content={`${car.title} for Sale in ${car.location || "Lagos"}`}
         />
         <meta
           property="og:description"
-          content={`Available now in Lagos for ₦${car.priceNGN ? Number(car.priceNGN).toLocaleString() : "Contact for price"}.`}
+          content={`Available now in ${car.location || "Lagos"} for ₦${car.priceNGN ? Number(car.priceNGN).toLocaleString() : "Contact for price"}.`}
         />
         <meta
           property="og:image"
@@ -396,14 +402,9 @@ export default function CarDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         {/* Left Column: Media Only */}
         <div className="space-y-6">
-          {/* Mobile Only: Vehicle Title & Status at top of Image */}
           <div className="block lg:hidden mb-2">
+            {/* Tags Container: Placed ABOVE the title */}
             <div className="flex gap-2 mb-2 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-              <span className="flex-shrink-0 whitespace-nowrap bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
-                {car.status ||
-                  "Available"}
-              </span>
-
               {car.category && (
                 <span className="flex-shrink-0 whitespace-nowrap bg-slate-100 text-slate-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
                   {
@@ -411,7 +412,6 @@ export default function CarDetail() {
                   }
                 </span>
               )}
-
               {car.condition && (
                 <span className="flex-shrink-0 whitespace-nowrap bg-amber-100 text-amber-900 text-xs font-bold px-3 py-1 rounded-full uppercase">
                   {
@@ -426,23 +426,28 @@ export default function CarDetail() {
                   }
                 </span>
               )}
-              {car.isNegotiable && (
+              {isNegotiable && (
                 <span className="flex-shrink-0 whitespace-nowrap bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
                   Negotiable
                 </span>
               )}
             </div>
 
+            {/* Title: Placed BELOW the tags */}
             <h1 className="text-2xl font-extrabold text-slate-900 mb-1">
               {
                 car.title
               }{" "}
               <span className="text-lg text-slate-600 block">
-                in
-                Lagos,
+                in{" "}
+                {car.location ||
+                  "Lagos"}
+
+                ,
                 Nigeria
               </span>
             </h1>
+
             <p className="text-2xl font-black text-blue-600">
               ₦
               {car.priceNGN
@@ -619,12 +624,23 @@ export default function CarDetail() {
         {/* Right Column: ALL Details, Specs, Features & Actions */}
         <div className="flex flex-col space-y-6">
           {/* Desktop Only Header */}
-          <div className="hidden lg:block">
-            <div className="flex flex-wrap gap-2 mb-3">
-              <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
-                {car.status ||
-                  "Available"}
+          <div className="hidden lg:block mb-4">
+            {/* Title */}
+            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3">
+              {
+                car.title
+              }{" "}
+              <span className="text-2xl text-slate-500 font-bold tracking-tight">
+                in{" "}
+                {car.location ||
+                  "Lagos"}
+                ,
+                Nigeria
               </span>
+            </h1>
+
+            {/* Tags Container: Placed BELOW the title */}
+            <div className="flex flex-wrap gap-2 mb-4">
               {car.category && (
                 <span className="bg-slate-100 text-slate-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
                   {
@@ -646,24 +662,14 @@ export default function CarDetail() {
                   }
                 </span>
               )}
-              {car.isNegotiable && (
+              {isNegotiable && (
                 <span className="bg-blue-100 text-blue-800 text-xs font-bold px-3 py-1 rounded-full uppercase">
                   Negotiable
                 </span>
               )}
             </div>
 
-            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2">
-              {
-                car.title
-              }{" "}
-              <span className="text-2xl text-slate-500 font-bold tracking-tight">
-                in
-                Lagos,
-                Nigeria
-              </span>
-            </h1>
-
+            {/* Price */}
             <p className="text-3xl font-black text-blue-600">
               ₦
               {car.priceNGN
@@ -832,7 +838,7 @@ export default function CarDetail() {
               </div>
             )}
 
-          {/* Cost Calculator */}
+          {/* Cost Breakdown */}
           <div>
             <CostCalculator
               carPriceNGN={
@@ -841,8 +847,8 @@ export default function CarDetail() {
                 ) ||
                 0
               }
-              settings={
-                settings
+              isNegotiable={
+                isNegotiable
               }
             />
           </div>

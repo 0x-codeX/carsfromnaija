@@ -105,7 +105,8 @@ exports.updateInquiryStatus =
             status,
           },
           {
-            new: true,
+            returnDocument:
+              "after",
             runValidators: true,
           },
         );

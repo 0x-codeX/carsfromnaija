@@ -149,6 +149,13 @@ const carSchema =
           default:
             "",
         },
+      location:
+        {
+          type: String,
+          default:
+            "Lagos",
+          trim: true,
+        },
     },
     {
       timestamps: true,
