@@ -110,7 +110,8 @@ export default function RecentSales() {
             Recently
             acquired
             and
-            delivered
+            delivered{" "}
+            <br className="sm:hidden" />
             to
             happy
             clients
