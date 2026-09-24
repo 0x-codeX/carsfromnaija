@@ -13,3 +13,4 @@ npm-debug.log*
 dist/
 build/
 .DS_Store
+Keeps/
