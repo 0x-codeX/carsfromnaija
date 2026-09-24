@@ -106,7 +106,7 @@ export default function AdminLayout() {
         className={`
         ${isMobileMenuOpen ? "block" : "hidden"} 
         md:block w-full md:w-64 bg-slate-900 text-slate-300 flex-shrink-0 
-        md:sticky md:top-0 md:h-screen z-40 transition-all absolute md:relative
+        md:sticky md:top-0 md:h-screen z-40 transition-all absolute top-[60px] left-0 right-0 md:relative md:top-0 shadow-xl md:shadow-none
       `}
       >
         <div className="p-6 hidden md:block border-b border-slate-800">
