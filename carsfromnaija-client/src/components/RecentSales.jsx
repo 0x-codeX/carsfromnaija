@@ -123,7 +123,6 @@ export default function RecentSales() {
           className="text-blue-600 font-semibold hover:underline text-sm"
         >
           Browse
-          Available
           Inventory
           &rarr;
         </Link>
