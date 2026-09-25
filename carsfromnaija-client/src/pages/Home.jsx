@@ -202,7 +202,7 @@ export default function Home() {
           Lagos,
           Nigeria
           |
-          YourDealershipName
+          CarsFromNaija
         </title>
         <meta
           name="description"
