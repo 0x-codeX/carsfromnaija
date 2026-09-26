@@ -30,6 +30,22 @@ app.use(
   express.json(),
 ); // Parses incoming JSON requests
 
+app.get(
+  "/",
+  (
+    req,
+    res,
+  ) => {
+    res
+      .status(
+        200,
+      )
+      .send(
+        "CarsFromNaija API is active.",
+      );
+  },
+);
+
 // Basic Health Check Route
 app.get(
   "/api/health",
