@@ -20,6 +20,12 @@ const carSchema =
           required: true,
           trim: true,
         },
+      trim: {
+        type: String,
+        trim: true,
+        default:
+          "",
+      },
       year: {
         type: Number,
         required: true,
@@ -81,7 +87,13 @@ const carSchema =
             trim: true,
             uppercase: true,
           },
-          color:
+          exteriorColor:
+            {
+              type: String,
+              required: true,
+              trim: true,
+            },
+          interiorColor:
             {
               type: String,
               trim: true,

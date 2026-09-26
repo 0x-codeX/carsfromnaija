@@ -634,6 +634,7 @@ export default function CarDetail() {
                 in{" "}
                 {car.location ||
                   "Lagos"}
+
                 ,
                 Nigeria
               </span>
@@ -707,6 +708,18 @@ export default function CarDetail() {
                     "N/A"}
                 </p>
               </div>
+              {car.trim && (
+                <div>
+                  <p className="text-xs text-slate-500 uppercase font-semibold mb-1">
+                    Trim
+                  </p>
+                  <p className="font-bold text-slate-900">
+                    {
+                      car.trim
+                    }
+                  </p>
+                </div>
+              )}
               <div>
                 <p className="text-xs text-slate-500 uppercase font-semibold mb-1">
                   Year
@@ -771,15 +784,33 @@ export default function CarDetail() {
               </div>
               <div>
                 <p className="text-xs text-slate-500 uppercase font-semibold mb-1">
+                  Exterior
                   Color
                 </p>
                 <p className="font-bold text-slate-900">
                   {car
                     .specs
-                    ?.color ||
+                    ?.exteriorColor ||
                     "N/A"}
                 </p>
               </div>
+              {car
+                .specs
+                ?.interiorColor && (
+                <div>
+                  <p className="text-xs text-slate-500 uppercase font-semibold mb-1">
+                    Interior
+                    Color
+                  </p>
+                  <p className="font-bold text-slate-900">
+                    {
+                      car
+                        .specs
+                        .interiorColor
+                    }
+                  </p>
+                </div>
+              )}
               {car
                 .specs
                 ?.vin && (

@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import API from "../../api/axios";
 
-const MAX_IMAGES = 10;
+const MAX_IMAGES = 15;
 
 const TOP_MAKES =
   [
@@ -351,6 +351,7 @@ export default function AddEditCar() {
         make: "",
         model:
           "",
+        trim: "",
         year: new Date().getFullYear(),
         priceNGN:
           "",
@@ -372,7 +373,9 @@ export default function AddEditCar() {
             engineType:
               "",
             vin: "",
-            color:
+            exteriorColor:
+              "",
+            interiorColor:
               "",
           },
       },
@@ -386,6 +389,14 @@ export default function AddEditCar() {
       false,
     );
 
+  const [
+    trimOption,
+    setTrimOption,
+  ] =
+    useState(
+      "",
+    );
+
   // Auto-populate Title strictly as: Year Make Model Condition
   useEffect(() => {
     if (
@@ -397,6 +408,7 @@ export default function AddEditCar() {
           formData.year,
           formData.make,
           formData.model,
+          formData.trim,
           formData.condition,
         ].filter(
           Boolean,
@@ -537,6 +549,9 @@ export default function AddEditCar() {
                 model:
                   data.model ||
                   "",
+                trim:
+                  data.trim ||
+                  "",
                 year:
                   data.year ||
                   new Date().getFullYear(),
@@ -567,7 +582,9 @@ export default function AddEditCar() {
                     engineType:
                       "",
                     vin: "",
-                    color:
+                    exteriorColor:
+                      "",
+                    interiorColor:
                       "",
                   },
               },
@@ -579,6 +596,38 @@ export default function AddEditCar() {
               setIsTitleCustomized(
                 true,
               );
+            if (
+              data.trim
+            ) {
+              const commonTrims =
+                [
+                  "LE",
+                  "SE",
+                  "XLE",
+                  "Limited",
+                  "Touring",
+                  "Sport",
+                  "Premium",
+                  "Platinum",
+                ];
+              if (
+                commonTrims.includes(
+                  data.trim,
+                )
+              ) {
+                setTrimOption(
+                  data.trim,
+                );
+              } else {
+                setTrimOption(
+                  "Other",
+                );
+              }
+            } else {
+              setTrimOption(
+                "",
+              );
+            }
             setMakeOption(
               ALL_PRESET_MAKES.includes(
                 data.make,
@@ -947,6 +996,10 @@ export default function AddEditCar() {
       submitData.append(
         "model",
         formData.model,
+      );
+      submitData.append(
+        "trim",
+        formData.trim,
       );
       submitData.append(
         "year",
@@ -1440,6 +1493,118 @@ export default function AddEditCar() {
               </div>
             )}
 
+            {/* Trim Dropdown Section */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">
+                Car
+                Trim
+                (Optional)
+              </label>
+              <select
+                value={
+                  trimOption
+                }
+                onChange={(
+                  e,
+                ) => {
+                  const val =
+                    e
+                      .target
+                      .value;
+                  setTrimOption(
+                    val,
+                  );
+                  // If standard trim, set it to formData immediately. If Other, clear it for custom input.
+                  if (
+                    val !==
+                    "Other"
+                  ) {
+                    setFormData(
+                      {
+                        ...formData,
+                        trim: val,
+                      },
+                    );
+                  } else {
+                    setFormData(
+                      {
+                        ...formData,
+                        trim: "",
+                      },
+                    );
+                  }
+                }}
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+              >
+                <option value="">
+                  Select
+                  Trim...
+                </option>
+                <option value="LE">
+                  LE
+                </option>
+                <option value="SE">
+                  SE
+                </option>
+                <option value="XLE">
+                  XLE
+                </option>
+                <option value="Limited">
+                  Limited
+                </option>
+                <option value="Touring">
+                  Touring
+                </option>
+                <option value="Sport">
+                  Sport
+                </option>
+                <option value="Premium">
+                  Premium
+                </option>
+                <option value="Platinum">
+                  Platinum
+                </option>
+                <option value="Other">
+                  Other
+                  (Custom
+                  Trim)
+                </option>
+              </select>
+            </div>
+
+            {/* Custom Trim Input (Opens when "Other" is selected) */}
+            {trimOption ===
+              "Other" && (
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Custom
+                  Trim
+                  Input
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. TRD Pro, XRT"
+                  required
+                  value={
+                    formData.trim
+                  }
+                  onChange={(
+                    e,
+                  ) =>
+                    setFormData(
+                      {
+                        ...formData,
+                        trim: e
+                          .target
+                          .value,
+                      },
+                    )
+                  }
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                />
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1">
                 Year
@@ -1886,16 +2051,19 @@ export default function AddEditCar() {
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Exterior
                   Color
-                  (Optional)
                 </label>
-                <input
-                  type="text"
+                <textarea
                   placeholder="e.g. Midnight Black"
+                  required
+                  rows={
+                    2
+                  }
                   value={
                     formData
                       .specs
-                      .color
+                      .exteriorColor
                   }
                   onChange={(
                     e,
@@ -1906,7 +2074,7 @@ export default function AddEditCar() {
                         specs:
                           {
                             ...formData.specs,
-                            color:
+                            exteriorColor:
                               e
                                 .target
                                 .value,
@@ -1914,7 +2082,44 @@ export default function AddEditCar() {
                       },
                     )
                   }
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Interior
+                  Color
+                  (Optional)
+                </label>
+                <textarea
+                  placeholder="e.g. Ivory White Leather"
+                  rows={
+                    2
+                  }
+                  value={
+                    formData
+                      .specs
+                      .interiorColor
+                  }
+                  onChange={(
+                    e,
+                  ) =>
+                    setFormData(
+                      {
+                        ...formData,
+                        specs:
+                          {
+                            ...formData.specs,
+                            interiorColor:
+                              e
+                                .target
+                                .value,
+                          },
+                      },
+                    )
+                  }
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500 resize-none"
                 />
               </div>
 
