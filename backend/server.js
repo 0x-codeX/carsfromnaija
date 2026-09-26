@@ -21,7 +21,7 @@ app.use(
     origin:
       [
         "http://localhost:5173",
-        "https://carsfromnaija.vercel.app",
+        "https://www.carsfromnaija.com.ng/",
       ],
     credentials: true,
   }),
