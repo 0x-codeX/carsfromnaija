@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 
 const userSchema =
   new mongoose.Schema(
@@ -12,16 +13,29 @@ const userSchema =
           lowercase: true,
           trim: true,
         },
+      backupEmail:
+        {
+          type: String,
+          lowercase: true,
+          trim: true,
+          default:
+            null,
+        },
       password:
         {
           type: String,
           required: true,
+          select: false, // Security: Do not return password by default in queries
         },
       role: {
         type: String,
         default:
           "admin",
       },
+      resetPasswordToken:
+        String,
+      resetPasswordExpire:
+        Date,
     },
     {
       timestamps: true,
@@ -31,14 +45,16 @@ const userSchema =
 // Hash password before saving to MongoDB
 userSchema.pre(
   "save",
-  async function () {
+  async function (
+    next,
+  ) {
     if (
       !this.isModified(
         "password",
       )
-    )
-      return;
-
+    ) {
+      next();
+    }
     const salt =
       await bcrypt.genSalt(
         10,
@@ -62,6 +78,38 @@ userSchema.methods.matchPassword =
       this
         .password,
     );
+  };
+
+// Generate and hash password reset token
+userSchema.methods.getResetPasswordToken =
+  function () {
+    const resetToken =
+      crypto
+        .randomBytes(
+          20,
+        )
+        .toString(
+          "hex",
+        );
+
+    this.resetPasswordToken =
+      crypto
+        .createHash(
+          "sha256",
+        )
+        .update(
+          resetToken,
+        )
+        .digest(
+          "hex",
+        );
+
+    this.resetPasswordExpire =
+      Date.now() +
+      10 *
+        60 *
+        1000; // 10 Minutes
+    return resetToken;
   };
 
 module.exports =

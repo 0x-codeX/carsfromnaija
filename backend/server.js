@@ -22,6 +22,7 @@ app.use(
       [
         "http://localhost:5173",
         "https://www.carsfromnaija.com.ng",
+        "https://carsfromnaija.com.ng",
       ],
     credentials: true,
   }),

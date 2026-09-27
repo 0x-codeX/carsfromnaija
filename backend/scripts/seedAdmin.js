@@ -1,8 +1,6 @@
 const mongoose = require("mongoose");
-const dotenv = require("dotenv");
+require("dotenv").config();
 const User = require("../models/User");
-
-dotenv.config();
 
 const seedAdmin =
   async () => {
@@ -13,69 +11,51 @@ const seedAdmin =
           .MONGO_URI,
       );
 
-      const adminEmail =
-        process
-          .env
-          .ADMIN_EMAIL ||
-        "admin@dealer.com";
-      const adminPassword =
-        process
-          .env
-          .ADMIN_PASSWORD ||
-        "DealerPass2026!";
+      const actualEmail =
+        "obong@carsfromnaija.com.ng"; // Replace with real email
+      const initialPassword =
+        "YourSecurePassword123!"; // Replace with initial password
 
-      // Check if admin already exists
-      const existingUser =
+      // Check if an existing admin account exists
+      let user =
         await User.findOne(
           {
-            email:
-              adminEmail,
+            role: "admin",
           },
         );
+
       if (
-        existingUser
+        user
       ) {
+        user.email =
+          actualEmail;
+        user.password =
+          initialPassword; // pre('save') hook will hash this automatically
+        await user.save();
         console.log(
-          `Admin account (${adminEmail}) already exists.`,
+          `✅ Existing Admin email updated to: ${actualEmail}`,
         );
-        process.exit(
-          0,
+      } else {
+        await User.create(
+          {
+            email:
+              actualEmail,
+            password:
+              initialPassword,
+            role: "admin",
+          },
+        );
+        console.log(
+          `✅ New Admin account created with email: ${actualEmail}`,
         );
       }
-
-      // Create Dealer Admin
-      await User.create(
-        {
-          email:
-            adminEmail,
-          password:
-            adminPassword,
-          role: "admin",
-        },
-      );
-
-      console.log(
-        "-----------------------------------------",
-      );
-      console.log(
-        "DEALER ADMIN CREATED SUCCESSFULLY",
-      );
-      console.log(
-        `Email:    ${adminEmail}`,
-      );
-      console.log(
-        `Password: ${adminPassword}`,
-      );
-      console.log(
-        "-----------------------------------------",
-      );
 
       process.exit(
         0,
       );
     } catch (error) {
       console.error(
-        "Error seeding admin:",
+        "❌ Failed to seed admin user:",
         error,
       );
       process.exit(

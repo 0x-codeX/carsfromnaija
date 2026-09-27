@@ -11,6 +11,8 @@ import {
   Trash2,
   Image as ImageIcon,
   UploadCloud,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import API from "../../api/axios";
 
@@ -149,6 +151,54 @@ const YEARS =
 
 export default function Settings() {
   const [
+    security,
+    setSecurity,
+  ] =
+    useState(
+      {
+        email:
+          "",
+        backupEmail:
+          "",
+        currentPassword:
+          "",
+        newPassword:
+          "",
+      },
+    );
+
+  const fetchUserCredentials =
+    async () => {
+      try {
+        const res =
+          await API.get(
+            "/auth/me",
+          );
+        setSecurity(
+          (
+            prev,
+          ) => ({
+            ...prev,
+            email:
+              res
+                .data
+                .email ||
+              "",
+            backupEmail:
+              res
+                .data
+                .backupEmail ||
+              "",
+          }),
+        );
+      } catch (error) {
+        console.error(
+          "Failed to load security profile",
+          error,
+        );
+      }
+    };
+  const [
     settings,
     setSettings,
   ] =
@@ -190,9 +240,24 @@ export default function Settings() {
         view: null,
       },
     );
+  const [
+    showCurrentPassword,
+    setShowCurrentPassword,
+  ] =
+    useState(
+      false,
+    );
+  const [
+    showNewPassword,
+    setShowNewPassword,
+  ] =
+    useState(
+      false,
+    );
 
   useEffect(() => {
     fetchSettings();
+    fetchUserCredentials();
   }, []);
 
   const fetchSettings =
@@ -490,6 +555,41 @@ export default function Settings() {
       }
     };
 
+  const handleSecuritySubmit =
+    async (
+      e,
+    ) => {
+      e.preventDefault();
+      try {
+        await API.put(
+          "/auth/credentials",
+          security,
+        );
+        alert(
+          "Security credentials updated successfully.",
+        );
+        setSecurity(
+          (
+            prev,
+          ) => ({
+            ...prev,
+            currentPassword:
+              "",
+            newPassword:
+              "",
+          }),
+        );
+      } catch (err) {
+        alert(
+          err
+            .response
+            ?.data
+            ?.message ||
+            "Failed to update security credentials.",
+        );
+      }
+    };
+
   const handleSubmit =
     async (
       e,
@@ -713,6 +813,196 @@ export default function Settings() {
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-4 py-2.5 font-bold text-slate-900 focus:outline-none focus:border-blue-500"
                 />
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Security & Authentication Section */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+          <div className="flex items-center gap-2 border-b border-slate-100 pb-3 text-slate-900">
+            <h2 className="text-lg font-bold">
+              Admin
+              Security
+              &
+              Credentials
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">
+                Primary
+                Login
+                Email
+                (Contact
+                Dev/Admin
+                to
+                change)
+              </label>
+              <input
+                type="email"
+                value={
+                  security.email
+                }
+                disabled
+                className="w-full bg-slate-100 border border-slate-200 text-slate-500 cursor-not-allowed rounded-lg px-4 py-2.5 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1">
+                Backup
+                Reset
+                Email
+              </label>
+              <input
+                type="email"
+                value={
+                  security.backupEmail
+                }
+                onChange={(
+                  e,
+                ) =>
+                  setSecurity(
+                    {
+                      ...security,
+                      backupEmail:
+                        e
+                          .target
+                          .value,
+                    },
+                  )
+                }
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+              />
+            </div>
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-slate-50 rounded-lg border border-slate-200">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Current
+                  Password
+                  (Required
+                  for
+                  change)
+                </label>
+                <div className="relative">
+                  <input
+                    type={
+                      showCurrentPassword
+                        ? "text"
+                        : "password"
+                    }
+                    value={
+                      security.currentPassword
+                    }
+                    onChange={(
+                      e,
+                    ) =>
+                      setSecurity(
+                        {
+                          ...security,
+                          currentPassword:
+                            e
+                              .target
+                              .value,
+                        },
+                      )
+                    }
+                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 pr-10 text-sm focus:outline-none focus:border-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowCurrentPassword(
+                        !showCurrentPassword,
+                      )
+                    }
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  >
+                    {showCurrentPassword ? (
+                      <EyeOff
+                        size={
+                          18
+                        }
+                      />
+                    ) : (
+                      <Eye
+                        size={
+                          18
+                        }
+                      />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  New
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={
+                      showNewPassword
+                        ? "text"
+                        : "password"
+                    }
+                    value={
+                      security.newPassword
+                    }
+                    onChange={(
+                      e,
+                    ) =>
+                      setSecurity(
+                        {
+                          ...security,
+                          newPassword:
+                            e
+                              .target
+                              .value,
+                        },
+                      )
+                    }
+                    className="w-full bg-white border border-slate-300 rounded-lg px-4 py-2.5 pr-10 text-sm focus:outline-none focus:border-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setShowNewPassword(
+                        !showNewPassword,
+                      )
+                    }
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                  >
+                    {showNewPassword ? (
+                      <EyeOff
+                        size={
+                          18
+                        }
+                      />
+                    ) : (
+                      <Eye
+                        size={
+                          18
+                        }
+                      />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="md:col-span-2 flex justify-end">
+              <button
+                type="button"
+                onClick={
+                  handleSecuritySubmit
+                }
+                className="bg-slate-800 hover:bg-slate-900 text-white px-6 py-2 rounded-lg font-bold transition-colors"
+              >
+                Update
+                Security
+                Data
+              </button>
             </div>
           </div>
         </div>

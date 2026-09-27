@@ -12,6 +12,7 @@ import MarketPriceGuide from "./pages/MarketPriceGuide";
 import ProtectedRoute from "./components/admin/ProtectedRoute";
 import AdminLayout from "./components/admin/AdminLayout";
 import Login from "./pages/admin/Login";
+import ResetPassword from "./pages/admin/ResetPassword";
 import Dashboard from "./pages/admin/Dashboard";
 import InventoryManager from "./pages/admin/InventoryManager";
 import AddEditCar from "./pages/admin/AddEditCar";
@@ -52,11 +53,17 @@ export default function App() {
         }
       />
 
-      {/* Unprotected Admin Login Route */}
+      {/* Unprotected Admin Auth Routes */}
       <Route
         path="/admin/login"
         element={
           <Login />
+        }
+      />
+      <Route
+        path="/reset-password/:token"
+        element={
+          <ResetPassword />
         }
       />
 

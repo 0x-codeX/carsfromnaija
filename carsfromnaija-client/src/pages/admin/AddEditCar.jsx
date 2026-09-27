@@ -17,6 +17,7 @@ import {
   Edit2,
   RotateCcw,
 } from "lucide-react";
+import toast from "react-hot-toast";
 import API from "../../api/axios";
 
 const MAX_IMAGES = 15;
@@ -686,7 +687,7 @@ export default function AddEditCar() {
               "Error fetching car:",
               error,
             );
-            alert(
+            toast(
               "Failed to load vehicle details.",
             );
             navigate(
@@ -814,7 +815,7 @@ export default function AddEditCar() {
         remainingSlots <=
         0
       ) {
-        alert(
+        toast(
           `You can upload a maximum of ${MAX_IMAGES} images.`,
         );
         e.target.value =
@@ -841,7 +842,7 @@ export default function AddEditCar() {
         validFiles.length >
         remainingSlots
       ) {
-        alert(
+        toast(
           `Only ${MAX_IMAGES} images are allowed. First ${remainingSlots} additional image(s) added.`,
         );
       }
@@ -1087,7 +1088,7 @@ export default function AddEditCar() {
                 },
             },
           );
-          alert(
+          toast.success(
             "Vehicle listing updated successfully!",
           );
         } else {
@@ -1102,7 +1103,7 @@ export default function AddEditCar() {
                 },
             },
           );
-          alert(
+          toast.success(
             "New vehicle uploaded to live inventory!",
           );
         }
@@ -1114,7 +1115,7 @@ export default function AddEditCar() {
           "Error saving vehicle:",
           error,
         );
-        alert(
+        toast(
           "Failed to save vehicle listing.",
         );
       } finally {
@@ -1144,7 +1145,7 @@ export default function AddEditCar() {
           1024 *
           1024
       ) {
-        alert(
+        toast(
           "Video is too large. Please compress it to under 15MB.",
         );
         return;
