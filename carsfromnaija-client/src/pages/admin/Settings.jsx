@@ -15,6 +15,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import API from "../../api/axios";
+import { Helmet } from "react-helmet-async";
 
 // Standard Nigerian market popular imports mapping
 const CAR_DATA =
@@ -692,6 +693,18 @@ export default function Settings() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6 pb-12">
+      <Helmet>
+        <title>
+          Settings
+          |
+          CarsFromNaija
+          Admin
+        </title>
+        <meta
+          name="description"
+          content="Manage platform settings, pricing, and security configurations."
+        />
+      </Helmet>
       <div>
         <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
           Platform

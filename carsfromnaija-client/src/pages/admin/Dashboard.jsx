@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import {
   useState,
   useEffect,
@@ -99,6 +100,51 @@ export default function Dashboard() {
           "",
       },
     );
+  // In-App Notification State (Replaces native browser alert popups)
+  const [
+    feedback,
+    setFeedback,
+  ] =
+    useState(
+      null,
+    ); // { type: 'success' | 'error', message: string }
+
+  // Custom Delete Confirmation Modal State (Replaces native window.confirm popup)
+  const [
+    deleteSaleId,
+    setDeleteSaleId,
+  ] =
+    useState(
+      null,
+    );
+  const [
+    isDeletingSale,
+    setIsDeletingSale,
+  ] =
+    useState(
+      false,
+    );
+
+  // Auto-dismissing feedback banner helper
+  const showFeedback =
+    (
+      type,
+      message,
+    ) => {
+      setFeedback(
+        {
+          type,
+          message,
+        },
+      );
+      setTimeout(
+        () =>
+          setFeedback(
+            null,
+          ),
+        4000,
+      );
+    };
 
   // Fetch Dashboard Data Concurrent Requests
   const fetchDashboardData =
@@ -254,6 +300,10 @@ export default function Dashboard() {
           `/cars/${soldModalCar._id}?keepMainImage=true`,
         );
 
+        showFeedback(
+          "success",
+          `${soldModalCar.title} successfully marked as sold!`,
+        );
         setSoldModalCar(
           null,
         );
@@ -266,7 +316,8 @@ export default function Dashboard() {
           "Failed to mark car as sold:",
           err,
         );
-        alert(
+        showFeedback(
+          "error",
           "Error marking car as sold. Please try again.",
         );
       } finally {
@@ -325,6 +376,10 @@ export default function Dashboard() {
               "",
           },
         );
+        showFeedback(
+          "success",
+          "Recent sale added successfully!",
+        );
         setIsAddSaleModalOpen(
           false,
         );
@@ -334,7 +389,8 @@ export default function Dashboard() {
           "Failed to add recent sale:",
           err,
         );
-        alert(
+        showFeedback(
+          "error",
           "Error adding recent sale. Please try again.",
         );
       } finally {
@@ -345,19 +401,25 @@ export default function Dashboard() {
     };
 
   // Handle Delete Recent Sale item
-  const handleDeleteSale =
-    async (
-      saleId,
-    ) => {
+  const confirmDeleteSale =
+    async () => {
       if (
-        !window.confirm(
-          "Remove this car from Recent Sales showcase?",
-        )
+        !deleteSaleId
       )
         return;
       try {
+        setIsDeletingSale(
+          true,
+        );
         await API.delete(
-          `/recent-sales/${saleId}`,
+          `/recent-sales/${deleteSaleId}`,
+        );
+        showFeedback(
+          "success",
+          "Car removed from Recent Sales showcase.",
+        );
+        setDeleteSaleId(
+          null,
         );
         await fetchDashboardData();
       } catch (err) {
@@ -365,9 +427,16 @@ export default function Dashboard() {
           "Failed to delete recent sale:",
           err,
         );
+        showFeedback(
+          "error",
+          "Failed to remove car from Recent Sales.",
+        );
+      } finally {
+        setIsDeletingSale(
+          false,
+        );
       }
     };
-
   // Check if a sale qualifies for the "Latest Sale" badge (Index 0 & within 14 days)
   const isLatestSale =
     (
@@ -441,6 +510,70 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
+      {/* React Helmet for Header & Browser Title Management */}
+      <Helmet>
+        <title>
+          Dashboard
+          |
+          CarsFromNaija
+          Admin
+        </title>
+        <meta
+          name="description"
+          content="Manage inventory, recent sales showcase, and budget requests."
+        />
+      </Helmet>
+
+      {/* In-App Success / Error Feedback Banner */}
+      {feedback && (
+        <div
+          className={`p-4 rounded-xl border flex items-center justify-between transition-all ${
+            feedback.type ===
+            "success"
+              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+              : "bg-red-50 border-red-200 text-red-800"
+          }`}
+        >
+          <div className="flex items-center gap-2 font-semibold text-sm">
+            {feedback.type ===
+            "success" ? (
+              <CheckCircle
+                size={
+                  18
+                }
+                className="text-emerald-600"
+              />
+            ) : (
+              <AlertCircle
+                size={
+                  18
+                }
+                className="text-red-600"
+              />
+            )}
+            <span>
+              {
+                feedback.message
+              }
+            </span>
+          </div>
+          <button
+            onClick={() =>
+              setFeedback(
+                null,
+              )
+            }
+            className="text-slate-400 hover:text-slate-600"
+          >
+            <X
+              size={
+                18
+              }
+            />
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div>
         <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
@@ -673,7 +806,7 @@ export default function Dashboard() {
                       )}
                       <button
                         onClick={() =>
-                          handleDeleteSale(
+                          setDeleteSaleId(
                             sale._id,
                           )
                         }
@@ -1205,6 +1338,77 @@ export default function Dashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* MODAL 3: DELETE CONFIRMATION */}
+      {deleteSaleId && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 relative">
+            <button
+              onClick={() =>
+                setDeleteSaleId(
+                  null,
+                )
+              }
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+            >
+              <X
+                size={
+                  20
+                }
+              />
+            </button>
+
+            <h3 className="text-lg font-extrabold text-slate-900 mb-2">
+              Remove
+              Recent
+              Sale
+            </h3>
+            <p className="text-xs text-slate-500 mb-6">
+              Are
+              you
+              sure
+              you
+              want
+              to
+              remove
+              this
+              car
+              from
+              the
+              Recent
+              Sales
+              showcase?
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() =>
+                  setDeleteSaleId(
+                    null,
+                  )
+                }
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl font-bold text-xs transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={
+                  confirmDeleteSale
+                }
+                disabled={
+                  isDeletingSale
+                }
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-bold text-xs transition-colors disabled:opacity-50"
+              >
+                {isDeletingSale
+                  ? "Removing..."
+                  : "Confirm Remove"}
+              </button>
+            </div>
           </div>
         </div>
       )}

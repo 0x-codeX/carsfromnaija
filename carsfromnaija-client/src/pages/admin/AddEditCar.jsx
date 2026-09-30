@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import API from "../../api/axios";
+import heic2any from "heic2any";
 
 const MAX_IMAGES = 15;
 
@@ -364,7 +365,7 @@ export default function AddEditCar() {
         bodyType:
           "",
         location:
-          "Lagos", // <-- Add this line
+          "Lagos",
         specs:
           {
             mileage:
@@ -788,7 +789,7 @@ export default function AddEditCar() {
     };
 
   const handleImageChange =
-    (
+    async (
       e,
     ) => {
       const selectedFiles =
@@ -823,15 +824,31 @@ export default function AddEditCar() {
         return;
       }
 
+      // Include standard images and explicit HEIC/HEIF extensions
       const validFiles =
         selectedFiles.filter(
           (
             file,
-          ) =>
-            file.type.startsWith(
-              "image/",
-            ),
+          ) => {
+            const ext =
+              file.name
+                .split(
+                  ".",
+                )
+                .pop()
+                .toLowerCase();
+            return (
+              file.type.startsWith(
+                "image/",
+              ) ||
+              ext ===
+                "heic" ||
+              ext ===
+                "heif"
+            );
+          },
         );
+
       const filesToAdd =
         validFiles.slice(
           0,
@@ -856,31 +873,144 @@ export default function AddEditCar() {
         return;
       }
 
-      setImageFiles(
-        (
-          prev,
-        ) => [
-          ...prev,
-          ...filesToAdd,
-        ],
-      );
-      setImagePreviews(
-        (
-          prev,
-        ) => [
-          ...prev,
-          ...filesToAdd.map(
-            (
-              file,
-            ) =>
-              URL.createObjectURL(
+      const toastId =
+        toast.loading(
+          "Processing and converting images...",
+        );
+
+      try {
+        const processedFiles =
+          await Promise.all(
+            filesToAdd.map(
+              async (
                 file,
+              ) => {
+                const ext =
+                  file.name
+                    .split(
+                      ".",
+                    )
+                    .pop()
+                    .toLowerCase();
+                const isHeic =
+                  file.type ===
+                    "image/heic" ||
+                  file.type ===
+                    "image/heif" ||
+                  ext ===
+                    "heic" ||
+                  ext ===
+                    "heif";
+
+                if (
+                  isHeic
+                ) {
+                  try {
+                    const convertedBlob =
+                      await heic2any(
+                        {
+                          blob: file,
+                          toType:
+                            "image/jpeg",
+                          quality: 0.85,
+                        },
+                      );
+
+                    const blobResult =
+                      Array.isArray(
+                        convertedBlob,
+                      )
+                        ? convertedBlob[0]
+                        : convertedBlob;
+
+                    const newFileName =
+                      file.name.replace(
+                        /\.(heic|heif)$/i,
+                        ".jpg",
+                      );
+                    return new File(
+                      [
+                        blobResult,
+                      ],
+                      newFileName,
+                      {
+                        type: "image/jpeg",
+                      },
+                    );
+                  } catch (err) {
+                    console.error(
+                      "Failed to convert HEIC image:",
+                      err,
+                    );
+                    toast.error(
+                      `Could not convert HEIC file: ${file.name}`,
+                    );
+                    return null;
+                  }
+                }
+                return file;
+              },
+            ),
+          );
+
+        const finalFiles =
+          processedFiles.filter(
+            Boolean,
+          );
+
+        if (
+          finalFiles.length >
+          0
+        ) {
+          setImageFiles(
+            (
+              prev,
+            ) => [
+              ...prev,
+              ...finalFiles,
+            ],
+          );
+          setImagePreviews(
+            (
+              prev,
+            ) => [
+              ...prev,
+              ...finalFiles.map(
+                (
+                  file,
+                ) =>
+                  URL.createObjectURL(
+                    file,
+                  ),
               ),
-          ),
-        ],
-      );
-      e.target.value =
-        "";
+            ],
+          );
+          toast.success(
+            "Images processed successfully!",
+            {
+              id: toastId,
+            },
+          );
+        } else {
+          toast.dismiss(
+            toastId,
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Error processing images:",
+          error,
+        );
+        toast.error(
+          "Failed to process images.",
+          {
+            id: toastId,
+          },
+        );
+      } finally {
+        e.target.value =
+          "";
+      }
     };
 
   const removeImage =
@@ -2268,7 +2398,7 @@ export default function AddEditCar() {
               <input
                 type="file"
                 multiple
-                accept="image/*"
+                accept="image/*,.heic,.heif"
                 onChange={
                   handleImageChange
                 }
@@ -2293,12 +2423,10 @@ export default function AddEditCar() {
                 Supports
                 PNG,
                 JPG,
+                WEBP,
                 or
-                WEBP
-                (Max
-                5MB
-                per
-                file)
+                HEIC
+                (Auto-converted)
               </p>
               <p className="text-xs font-semibold text-blue-600 mt-1">
                 Maximum{" "}

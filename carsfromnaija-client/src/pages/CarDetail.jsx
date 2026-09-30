@@ -88,6 +88,43 @@ export default function CarDetail() {
       false,
     );
 
+  const [
+    nextCarId,
+    setNextCarId,
+  ] =
+    useState(
+      null,
+    );
+  const [
+    nextViewedHistory,
+    setNextViewedHistory,
+  ] =
+    useState(
+      [],
+    );
+
+  const currentViewedIds =
+    location
+      .state
+      ?.viewedIds ||
+    [];
+  const prevCarId =
+    currentViewedIds.length >
+    0
+      ? currentViewedIds[
+          currentViewedIds.length -
+            1
+        ]
+      : null;
+  const prevViewedHistory =
+    currentViewedIds.length >
+    0
+      ? currentViewedIds.slice(
+          0,
+          -1,
+        )
+      : [];
+
   useEffect(() => {
     const fetchCarAndSettings =
       async () => {
@@ -99,10 +136,11 @@ export default function CarDetail() {
             null,
           );
 
-          // Concurrent fetching for both the car details and global backend settings
+          // Concurrent fetching for car details, global backend settings, and full inventory for sorting
           const [
             carResponse,
             settingsResponse,
+            inventoryResponse,
           ] =
             await Promise.all(
               [
@@ -112,11 +150,227 @@ export default function CarDetail() {
                 API.get(
                   "/settings",
                 ),
+                API.get(
+                  "/cars",
+                ),
               ],
             );
 
+          const currentCar =
+            carResponse.data;
+          const allCars =
+            inventoryResponse.data ||
+            [];
+
+          // --- BULLETPROOF RELATIVE SORTING ---
+          // We track what the user has already seen in this session via React Router state
+          // to completely eliminate infinite A->B->A loops.
+          const currentViewedIds =
+            location
+              .state
+              ?.viewedIds ||
+            [];
+
+          // 1. Filter out the current car AND any cars already viewed
+          let availableCars =
+            allCars.filter(
+              (
+                c,
+              ) =>
+                c._id !==
+                  id &&
+                c.id !==
+                  id &&
+                !currentViewedIds.includes(
+                  c._id ||
+                    c.id,
+                ),
+            );
+
+          // 2. If the user has exhausted the entire inventory, clear the history so they can keep browsing
+          let willResetHistory = false;
+          if (
+            availableCars.length ===
+              0 &&
+            allCars.length >
+              1
+          ) {
+            availableCars =
+              allCars.filter(
+                (
+                  c,
+                ) =>
+                  c._id !==
+                    id &&
+                  c.id !==
+                    id,
+              );
+            willResetHistory = true;
+          }
+
+          // 3. Strict Scoring System matching your exact requirements
+          const getSimilarityScore =
+            (
+              base,
+              compare,
+            ) => {
+              const sameMake =
+                (
+                  base.make ||
+                  ""
+                )
+                  .toLowerCase()
+                  .trim() ===
+                (
+                  compare.make ||
+                  ""
+                )
+                  .toLowerCase()
+                  .trim();
+              const sameModel =
+                (
+                  base.model ||
+                  ""
+                )
+                  .toLowerCase()
+                  .trim() ===
+                (
+                  compare.model ||
+                  ""
+                )
+                  .toLowerCase()
+                  .trim();
+              const sameYear =
+                String(
+                  base.year ||
+                    "",
+                ).trim() ===
+                String(
+                  compare.year ||
+                    "",
+                ).trim();
+              const sameBody =
+                (
+                  base.bodyType ||
+                  ""
+                )
+                  .toLowerCase()
+                  .trim() ===
+                (
+                  compare.bodyType ||
+                  ""
+                )
+                  .toLowerCase()
+                  .trim();
+
+              if (
+                sameMake &&
+                sameModel &&
+                sameYear
+              )
+                return 4; // Priority 1: Exact Make, Model, Year
+              if (
+                sameMake &&
+                sameModel
+              )
+                return 3; // Priority 2: Exact Make, Model (Diff Year)
+              if (
+                sameBody
+              )
+                return 2; // Priority 3: Same Body Type
+              return 1; // Priority 4: Everything else
+            };
+
+          // 4. Sort remaining candidates
+          availableCars.sort(
+            (
+              a,
+              b,
+            ) => {
+              const scoreA =
+                getSimilarityScore(
+                  currentCar,
+                  a,
+                );
+              const scoreB =
+                getSimilarityScore(
+                  currentCar,
+                  b,
+                );
+
+              if (
+                scoreA !==
+                scoreB
+              ) {
+                return (
+                  scoreB -
+                  scoreA
+                ); // Highest score wins
+              }
+
+              // Tie-breaker 1: Year (Ascending - oldest of the remaining matches first)
+              const yearA =
+                Number(
+                  a.year,
+                ) ||
+                0;
+              const yearB =
+                Number(
+                  b.year,
+                ) ||
+                0;
+              if (
+                yearA !==
+                yearB
+              )
+                return (
+                  yearA -
+                  yearB
+                );
+
+              // Tie-breaker 2: Price (Cheapest first)
+              const priceA =
+                Number(
+                  a.priceNGN,
+                ) ||
+                0;
+              const priceB =
+                Number(
+                  b.priceNGN,
+                ) ||
+                0;
+              return (
+                priceA -
+                priceB
+              );
+            },
+          );
+
+          // 5. Assign the next car and prepare the updated history payload
+          if (
+            availableCars.length >
+            0
+          ) {
+            const nextCar =
+              availableCars[0];
+            setNextCarId(
+              nextCar._id ||
+                nextCar.id,
+            );
+            setNextViewedHistory(
+              willResetHistory
+                ? [
+                    id,
+                  ]
+                : [
+                    ...currentViewedIds,
+                    id,
+                  ],
+            );
+          }
+
           setCar(
-            carResponse.data,
+            currentCar,
           );
           setSettings(
             settingsResponse.data,
@@ -380,23 +634,77 @@ export default function CarDetail() {
           carSchema,
         )}
       </script>
-      {/* Sticky Back Button Container */}
-      <div className="sticky top-[80px] z-40 mb-6 py-1 px-1 bg-white/80 backdrop-blur-lg border border-slate-200 shadow-sm rounded-xl w-max">
-        <Link
-          to={
-            backRoute
-          }
-          className="inline-flex items-center gap-2 px-4 py-2 text-slate-700 font-bold text-sm hover:text-blue-700 bg-transparent rounded-lg transition-colors"
-        >
-          <ArrowLeft
-            size={
-              18
+      {/* Sticky Top Navigation Container */}
+      <div className="sticky top-[80px] z-40 mb-6 py-1 px-1 flex justify-between items-center w-full">
+        {/* Back Button */}
+        <div className="bg-white/80 backdrop-blur-lg border border-slate-200 shadow-sm rounded-xl w-max">
+          <Link
+            to={
+              backRoute
             }
-          />
-          {
-            backText
-          }
-        </Link>
+            className="inline-flex items-center gap-2 px-4 py-2 text-slate-700 font-bold text-sm hover:text-blue-700 bg-transparent rounded-lg transition-colors"
+          >
+            <ArrowLeft
+              size={
+                18
+              }
+            />
+            {
+              backText
+            }
+          </Link>
+        </div>
+
+        {/* Forward & Backward Navigation */}
+        <div className="flex gap-2">
+          {/* Previous Car Button */}
+          {prevCarId && (
+            <div className="bg-white/80 backdrop-blur-lg border border-slate-200 shadow-sm rounded-xl w-max">
+              <Link
+                to={`/car/${prevCarId}`}
+                state={{
+                  fromAdmin:
+                    isAdminView,
+                  viewedIds:
+                    prevViewedHistory,
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 text-blue-700 font-bold text-sm hover:text-blue-800 bg-transparent rounded-lg transition-colors"
+              >
+                <ChevronLeft
+                  size={
+                    18
+                  }
+                />
+                Previous
+                Car
+              </Link>
+            </div>
+          )}
+
+          {/* Next Car Button */}
+          {nextCarId && (
+            <div className="bg-white/80 backdrop-blur-lg border border-slate-200 shadow-sm rounded-xl w-max">
+              <Link
+                to={`/car/${nextCarId}`}
+                state={{
+                  fromAdmin:
+                    isAdminView,
+                  viewedIds:
+                    nextViewedHistory,
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 text-blue-700 font-bold text-sm hover:text-blue-800 bg-transparent rounded-lg transition-colors"
+              >
+                Next
+                Car
+                <ChevronRight
+                  size={
+                    18
+                  }
+                />
+              </Link>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">

@@ -9,8 +9,12 @@ import {
   Edit3,
   Trash2,
   Eye,
+  X,
+  CheckCircle,
 } from "lucide-react";
 import API from "../../api/axios";
+import { Helmet } from "react-helmet-async";
+
 
 export default function InventoryManager() {
   const [
@@ -34,6 +38,51 @@ export default function InventoryManager() {
     useState(
       true,
     );
+  // In-App Notification State
+  const [
+    feedback,
+    setFeedback,
+  ] =
+    useState(
+      null,
+    );
+
+  // Custom Delete Confirmation Modal State
+  const [
+    deleteCarId,
+    setDeleteCarId,
+  ] =
+    useState(
+      null,
+    );
+  const [
+    isDeleting,
+    setIsDeleting,
+  ] =
+    useState(
+      false,
+    );
+
+  // Auto-dismissing feedback banner helper
+  const showFeedback =
+    (
+      type,
+      message,
+    ) => {
+      setFeedback(
+        {
+          type,
+          message,
+        },
+      );
+      setTimeout(
+        () =>
+          setFeedback(
+            null,
+          ),
+        4000,
+      );
+    };
 
   useEffect(() => {
     fetchCars();
@@ -61,37 +110,48 @@ export default function InventoryManager() {
       }
     };
 
-  const handleDelete =
-    async (
-      id,
-    ) => {
+  const confirmDelete =
+    async () => {
       if (
-        window.confirm(
-          "Are you sure you want to delete this listing permanently?",
-        )
-      ) {
-        try {
-          await API.delete(
-            `/cars/${id}`,
-          );
-          setCars(
-            cars.filter(
-              (
-                car,
-              ) =>
-                car._id !==
-                id,
-            ),
-          );
-        } catch (error) {
-          console.error(
-            "Failed to delete car:",
-            error,
-          );
-          alert(
-            "Could not delete vehicle.",
-          );
-        }
+        !deleteCarId
+      )
+        return;
+      try {
+        setIsDeleting(
+          true,
+        );
+        await API.delete(
+          `/cars/${deleteCarId}`,
+        );
+        setCars(
+          cars.filter(
+            (
+              car,
+            ) =>
+              car._id !==
+              deleteCarId,
+          ),
+        );
+        showFeedback(
+          "success",
+          "Vehicle permanently deleted.",
+        );
+        setDeleteCarId(
+          null,
+        ); // Close modal
+      } catch (error) {
+        console.error(
+          "Failed to delete car:",
+          error,
+        );
+        showFeedback(
+          "error",
+          "Could not delete vehicle.",
+        );
+      } finally {
+        setIsDeleting(
+          false,
+        );
       }
     };
 
@@ -114,6 +174,69 @@ export default function InventoryManager() {
 
   return (
     <div className="space-y-6">
+      {/* Helmet for Page Title */}
+      <Helmet>
+        <title>
+          Inventory
+          |
+          CarsFromNaija
+          Admin
+        </title>
+        <meta
+          name="description"
+          content="Manage your active vehicle inventory."
+        />
+      </Helmet>
+
+      {/* In-App Feedback Banner */}
+      {feedback && (
+        <div
+          className={`p-4 rounded-xl border flex items-center justify-between transition-all ${
+            feedback.type ===
+            "success"
+              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+              : "bg-red-50 border-red-200 text-red-800"
+          }`}
+        >
+          <div className="flex items-center gap-2 font-semibold text-sm">
+            {feedback.type ===
+            "success" ? (
+              <CheckCircle
+                size={
+                  18
+                }
+                className="text-emerald-600"
+              />
+            ) : (
+              <AlertCircle
+                size={
+                  18
+                }
+                className="text-red-600"
+              />
+            )}
+            <span>
+              {
+                feedback.message
+              }
+            </span>
+          </div>
+          <button
+            onClick={() =>
+              setFeedback(
+                null,
+              )
+            }
+            className="text-slate-400 hover:text-slate-600"
+          >
+            <X
+              size={
+                18
+              }
+            />
+          </button>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-slate-900">
@@ -291,7 +414,7 @@ export default function InventoryManager() {
                         </Link>
                         <button
                           onClick={() =>
-                            handleDelete(
+                            setDeleteCarId(
                               car._id,
                             )
                           }
@@ -312,6 +435,44 @@ export default function InventoryManager() {
           </div>
         )}
       </div>
+      {/* DELETE CONFIRMATION MODAL */}
+      {deleteCarId && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 relative">
+            <button
+              onClick={() => setDeleteCarId(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+            >
+              <X size={20} />
+            </button>
+
+            <h3 className="text-lg font-extrabold text-slate-900 mb-2">
+              Delete Vehicle
+            </h3>
+            <p className="text-xs text-slate-500 mb-6">
+              Are you sure you want to delete this listing permanently? This action cannot be undone.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteCarId(null)}
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl font-bold text-xs transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl font-bold text-xs transition-colors disabled:opacity-50"
+              >
+                {isDeleting ? "Deleting..." : "Confirm Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
